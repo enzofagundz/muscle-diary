@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\SyncSetting;
 use App\Support\NativeNetwork;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
@@ -53,6 +54,8 @@ class SyncRunner
                 ->post($settings->server_url.'/api/sync/push', ['rows' => $payload]);
 
             if ($push->failed()) {
+                Log::warning('Sync push falhou', ['status' => $push->status()]);
+
                 return false;
             }
 
@@ -66,6 +69,8 @@ class SyncRunner
                 ]);
 
             if ($pull->failed()) {
+                Log::warning('Sync pull falhou', ['status' => $pull->status()]);
+
                 return false;
             }
 
@@ -74,7 +79,9 @@ class SyncRunner
             $settings->update(['last_synced_at' => now()]);
 
             return true;
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::warning('Sync falhou', ['erro' => $exception->getMessage()]);
+
             return false;
         }
     }
