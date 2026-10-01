@@ -59,6 +59,38 @@ Para gerar o APK assinado é preciso o Android Studio instalado:
 php artisan native:package
 ```
 
+## Importar as anotações antigas
+
+```sh
+php artisan app:import-notion anotacoes.md --user=seu@email.com
+```
+
+O arquivo segue o formato das anotações que já existiam:
+
+```
+## 2026-09-29 — Upper 1 — Sky
+
+### Supino máquina — Peito
+14 placas — 12
+14 placas — 7
+obs: aguentava mais
+
+### Remada curvada — Costas
+40 kg — 4 + 35 kg — 4
+65 kg — 8
+60 kg —
+— 10
+```
+
+- `## data — nome — local` abre um treino; o local é opcional.
+- `### exercício — grupo muscular` abre um exercício. O grupo só é obrigatório quando o exercício ainda não existe no catálogo; se ele já existe, o nome basta.
+- Uma linha por série, no formato `carga unidade — repetições`. A unidade aceita `kg`, `placas`/`pl` e `libras`/`lb`; sem unidade e sem carga, a série é de peso corporal.
+- `+` na mesma linha vira uma série combinada, com um segmento por carga.
+- `obs:` guarda a observação do exercício.
+- Rodar de novo não duplica: um treino já importado, com a mesma data e o mesmo nome, é pulado.
+
+O que não puder ser lido com segurança é relatado na saída em vez de adivinhado.
+
 ## Testes
 
 ```sh
