@@ -2,6 +2,36 @@
     <p class="font-display text-xs tracking-[0.25em] text-primary uppercase">Histórico</p>
     <h1 class="page-title mt-2">Treinos</h1>
 
+    <div class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <select class="select w-full" wire:model.live="templateId" aria-label="Filtrar por modelo">
+            <option value="">Todos os modelos</option>
+            @foreach ($templates as $template)
+                <option value="{{ $template->id }}">{{ $template->name }}</option>
+            @endforeach
+        </select>
+
+        <select class="select w-full" wire:model.live="exerciseId" aria-label="Filtrar por exercício">
+            <option value="">Todos os exercícios</option>
+            @foreach ($exercises as $exercise)
+                <option value="{{ $exercise->id }}">{{ $exercise->name }}</option>
+            @endforeach
+        </select>
+
+        <select class="select w-full" wire:model.live="muscleGroup" aria-label="Filtrar por grupo muscular">
+            <option value="">Todos os grupos</option>
+            @foreach ($groups as $group)
+                <option value="{{ $group }}">{{ $group }}</option>
+            @endforeach
+        </select>
+
+        <select class="select w-full" wire:model.live="location" aria-label="Filtrar por local">
+            <option value="">Todos os locais</option>
+            @foreach ($locations as $knownLocation)
+                <option value="{{ $knownLocation }}">{{ $knownLocation }}</option>
+            @endforeach
+        </select>
+    </div>
+
     @if ($unfinished->isNotEmpty())
         <section class="mt-8">
             <h2 class="font-display text-lg tracking-wide uppercase">Não concluídos</h2>

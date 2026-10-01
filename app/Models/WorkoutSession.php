@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\WorkoutSessionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -57,6 +58,29 @@ class WorkoutSession extends Model
     public function isFinished(): bool
     {
         return $this->finished_at !== null;
+    }
+
+    public function previousForSameTemplate(): ?self
+    {
+        if ($this->workout_template_id === null) {
+            return null;
+        }
+
+        return static::query()
+            ->where('user_id', $this->user_id)
+            ->where('workout_template_id', $this->workout_template_id)
+            ->whereKeyNot($this->id)
+            ->whereNotNull('finished_at')
+            ->where(function (Builder $query): void {
+                $query->where('performed_on', '<', $this->performed_on)
+                    ->orWhere(function (Builder $query): void {
+                        $query->where('performed_on', $this->performed_on)
+                            ->where('created_at', '<', $this->created_at);
+                    });
+            })
+            ->orderByDesc('performed_on')
+            ->orderByDesc('created_at')
+            ->first();
     }
 
     public function durationInMinutes(): ?int

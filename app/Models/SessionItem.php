@@ -117,6 +117,28 @@ class SessionItem extends Model
         ));
     }
 
+    /**
+     * The difference in load and reps between the best set here and the best
+     * set of another item: null when there is nothing to compare or the units
+     * do not match.
+     *
+     * @return array{load: float, reps: int}|null
+     */
+    public function deltaAgainst(?self $other): ?array
+    {
+        $current = $this->bestSet();
+        $previous = $other?->bestSet();
+
+        if ($current === null || $previous === null || $current->unit !== $previous->unit) {
+            return null;
+        }
+
+        return [
+            'load' => round((float) $current->load - (float) $previous->load, 2),
+            'reps' => ($current->reps ?? 0) - ($previous->reps ?? 0),
+        ];
+    }
+
     public function bestSet(): ?SessionSet
     {
         return $this->sets

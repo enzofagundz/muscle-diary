@@ -79,6 +79,92 @@
         <p class="mt-6 rounded-box bg-base-200 p-5 text-sm">{{ $session->notes }}</p>
     @endif
 
+    <label class="fieldset mt-8 max-w-md">
+        <span class="label">Comparar com</span>
+        <select class="select w-full" wire:model.live="compareWithId">
+            <option value="">Não comparar</option>
+            @foreach ($candidates as $candidate)
+                <option value="{{ $candidate->id }}">
+                    {{ $candidate->performed_on->translatedFormat('d M') }} · {{ $candidate->name }}
+                </option>
+            @endforeach
+        </select>
+    </label>
+
+    @if ($comparingWith === null)
+        <p class="mt-3 text-sm opacity-60">Sem treino anterior para comparar.</p>
+    @else
+        <section class="mt-6">
+            <h2 class="font-display text-lg tracking-wide uppercase">
+                Comparação com {{ $comparingWith->performed_on->translatedFormat('d M') }}
+            </h2>
+
+            <ul class="mt-3 flex flex-col gap-3">
+                @foreach ($comparison as $row)
+                    <li class="card bg-base-200" wire:key="compare-{{ $row['item']->id }}">
+                        <div class="card-body gap-4 p-5">
+                            <div class="flex flex-wrap items-baseline justify-between gap-3">
+                                <p class="font-display text-xl leading-none uppercase">
+                                    {{ $row['item']->exercise->name }}
+                                </p>
+
+                                @if ($row['delta'])
+                                    @php $load = rtrim(rtrim(number_format($row['delta']['load'], 2, ',', ''), '0'), ','); @endphp
+                                    <span
+                                        @class([
+                                            'font-display text-lg leading-none',
+                                            'text-primary' => $row['delta']['load'] > 0 || $row['delta']['reps'] > 0,
+                                            'text-error' => $row['delta']['load'] < 0 || $row['delta']['reps'] < 0,
+                                            'opacity-40' => $row['delta']['load'] === 0.0 && $row['delta']['reps'] === 0,
+                                        ])
+                                    >
+                                        {{ $row['delta']['load'] > 0 ? '+' : '' }}{{ $load }} carga
+                                        ·
+                                        {{ $row['delta']['reps'] > 0 ? '+' : '' }}{{ $row['delta']['reps'] }} reps
+                                    </span>
+                                @else
+                                    <span class="text-xs opacity-50">sem comparação direta</span>
+                                @endif
+                            </div>
+
+                            <div class="grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <p class="text-xs tracking-[0.2em] uppercase opacity-50">Antes</p>
+                                    <ul class="mt-2 flex flex-col gap-1">
+                                        @forelse ($row['previousSets'] as $set)
+                                            <li class="text-sm">
+                                                <span class="font-display mr-2 opacity-60">{{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}</span>
+                                                {{ $set->load === null ? '—' : rtrim(rtrim(number_format($set->load, 2, ',', ''), '0'), ',') }}
+                                                {{ $set->unit->label() }} × {{ $set->reps ?? '—' }}
+                                            </li>
+                                        @empty
+                                            <li class="text-sm opacity-40">—</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <p class="text-xs tracking-[0.2em] uppercase opacity-50">Agora</p>
+                                    <ul class="mt-2 flex flex-col gap-1">
+                                        @forelse ($row['currentSets'] as $set)
+                                            <li class="text-sm">
+                                                <span class="font-display mr-2 opacity-60">{{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}</span>
+                                                {{ $set->load === null ? '—' : rtrim(rtrim(number_format($set->load, 2, ',', ''), '0'), ',') }}
+                                                {{ $set->unit->label() }} × {{ $set->reps ?? '—' }}
+                                            </li>
+                                        @empty
+                                            <li class="text-sm opacity-40">—</li>
+                                        @endforelse
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     <ol class="mt-8 flex flex-col gap-3">
         @forelse ($items as $index => $item)
             <li class="card bg-base-200" wire:key="item-{{ $item->id }}">
