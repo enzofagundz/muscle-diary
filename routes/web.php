@@ -2,6 +2,7 @@
 
 use App\Livewire\Dashboard;
 use App\Livewire\Exercises;
+use App\Livewire\History;
 use App\Livewire\Login;
 use App\Livewire\Sessions;
 use App\Livewire\Templates;
@@ -22,6 +23,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/templates/{template}', Templates\Show::class)->name('templates.edit');
 
     Route::get('/sessions/{session}', Sessions\Runner::class)->name('sessions.run');
+
+    Route::get('/history', History\Index::class)->name('history.index');
+    Route::get('/history/{session}', History\Show::class)->name('history.show');
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();

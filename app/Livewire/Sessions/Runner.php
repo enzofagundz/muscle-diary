@@ -46,6 +46,25 @@ class Runner extends Component
         $this->authorizeSession();
     }
 
+    public function finish(): void
+    {
+        $this->session->update(['finished_at' => now()]);
+
+        $this->redirectRoute('history.show', $this->session, navigate: true);
+    }
+
+    public function discard(): void
+    {
+        foreach ($this->session->items()->with('sets')->get() as $item) {
+            $item->sets()->delete();
+            $item->delete();
+        }
+
+        $this->session->delete();
+
+        $this->redirectRoute('dashboard', navigate: true);
+    }
+
     public function addSet(string $itemId): void
     {
         $item = $this->ownedItem($itemId);

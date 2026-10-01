@@ -58,4 +58,13 @@ class WorkoutSession extends Model
     {
         return $this->finished_at !== null;
     }
+
+    public function durationInMinutes(): ?int
+    {
+        if ($this->finished_at === null) {
+            return null;
+        }
+
+        return (int) $this->created_at->diffInMinutes($this->finished_at);
+    }
 }

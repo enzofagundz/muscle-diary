@@ -1,5 +1,6 @@
 @php
     $links = [
+        ['label' => 'Histórico', 'route' => 'history.index', 'active' => 'history.*'],
         ['label' => 'Exercícios', 'route' => 'exercises.index', 'active' => 'exercises.*'],
         ['label' => 'Modelos', 'route' => 'templates.index', 'active' => 'templates.*'],
     ];

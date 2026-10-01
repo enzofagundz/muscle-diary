@@ -14,7 +14,24 @@
             </p>
         </div>
 
-        <button type="button" class="btn btn-primary btn-sm px-5" wire:click="addItem">Adicionar exercício</button>
+        <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn btn-outline btn-primary btn-sm px-5" wire:click="addItem">Adicionar exercício</button>
+
+            @unless ($session->isFinished())
+                <button
+                    type="button"
+                    class="btn btn-ghost btn-sm text-error"
+                    wire:click="discard"
+                    wire:confirm="Descartar este treino? O que já foi registrado vai junto."
+                >
+                    Descartar
+                </button>
+            @endunless
+
+            <button type="button" class="btn btn-primary btn-sm px-6" wire:click="finish" wire:loading.attr="disabled">
+                {{ $session->isFinished() ? 'Salvar e voltar' : 'Finalizar treino' }}
+            </button>
+        </div>
     </div>
 
     @if ($formOpen)
