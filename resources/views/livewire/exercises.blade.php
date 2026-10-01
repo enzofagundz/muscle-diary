@@ -1,23 +1,26 @@
 <div>
-    <div class="flex items-center justify-between gap-2">
-        <h1 class="text-2xl font-semibold">Exercícios</h1>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+        <div>
+            <p class="font-display text-xs tracking-[0.25em] text-primary uppercase">Catálogo</p>
+            <h1 class="page-title mt-2">Exercícios</h1>
+        </div>
 
         <div class="flex items-center gap-2">
             <button type="button" class="btn btn-ghost btn-sm" wire:click="$toggle('showArchived')">
                 {{ $showArchived ? 'Ver ativos' : "Arquivados ({$archivedCount})" }}
             </button>
-            <button type="button" class="btn btn-primary btn-sm" wire:click="create">Novo</button>
+            <button type="button" class="btn btn-primary btn-sm px-5" wire:click="create">Novo</button>
         </div>
     </div>
 
     @if ($notice)
-        <div class="alert alert-info mt-4 text-sm">{{ $notice }}</div>
+        <div class="mt-6 rounded-box bg-base-200 p-5 text-sm" role="status">{{ $notice }}</div>
     @endif
 
     @if ($formOpen)
-        <form wire:submit="save" class="card mt-4 border border-base-300 bg-base-100">
-            <div class="card-body gap-3">
-                <h2 class="card-title text-base">{{ $editingId ? 'Editar exercício' : 'Novo exercício' }}</h2>
+        <form wire:submit="save" class="card mt-6 bg-base-200">
+            <div class="card-body gap-4">
+                <h2 class="card-title text-xl">{{ $editingId ? 'Editar exercício' : 'Novo exercício' }}</h2>
 
                 <label class="fieldset">
                     <span class="label">Nome</span>
@@ -25,7 +28,7 @@
                     @error('name') <span class="text-error text-sm">{{ $message }}</span> @enderror
                 </label>
 
-                <div class="grid gap-3 sm:grid-cols-2">
+                <div class="grid gap-4 sm:grid-cols-2">
                     <label class="fieldset">
                         <span class="label">Grupo muscular</span>
                         <select class="select w-full" wire:model="muscleGroup" required>
@@ -56,14 +59,14 @@
 
                 <div class="card-actions justify-end">
                     <button type="button" class="btn btn-ghost" wire:click="cancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">Salvar</button>
+                    <button type="submit" class="btn btn-primary px-6" wire:loading.attr="disabled">Salvar</button>
                 </div>
             </div>
         </form>
     @endif
 
     @unless ($showArchived)
-        <div class="mt-4 flex flex-col gap-2 sm:flex-row">
+        <div class="mt-6 flex flex-col gap-3 sm:flex-row">
             <input
                 type="search"
                 class="input w-full"
@@ -71,7 +74,7 @@
                 wire:model.live.debounce.300ms="search"
             >
 
-            <select class="select w-full sm:w-56" wire:model.live="group">
+            <select class="select w-full sm:w-64" wire:model.live="group">
                 <option value="">Todos os grupos</option>
                 @foreach ($groups as $muscleGroup)
                     <option value="{{ $muscleGroup }}">{{ $muscleGroup }}</option>
@@ -80,13 +83,13 @@
         </div>
     @endunless
 
-    <ul class="mt-4 flex flex-col gap-2">
+    <ul class="mt-6 grid gap-2 sm:grid-cols-2">
         @forelse ($exercises as $exercise)
-            <li class="card border border-base-300 bg-base-100" wire:key="{{ $exercise->id }}">
-                <div class="card-body flex-row items-center justify-between gap-2 p-3">
+            <li class="card bg-base-200" wire:key="{{ $exercise->id }}">
+                <div class="card-body flex-row items-center justify-between gap-3 p-5">
                     <div class="min-w-0">
                         <p class="truncate font-medium">{{ $exercise->name }}</p>
-                        <p class="text-xs opacity-70">
+                        <p class="mt-1 text-xs opacity-60">
                             {{ $exercise->muscle_group }} · {{ $exercise->unit_default->label() }}
                             @if ($exercise->isGlobal())
                                 · <span class="badge badge-ghost badge-xs">catálogo base</span>
@@ -119,7 +122,7 @@
                 </div>
             </li>
         @empty
-            <li class="rounded-box border border-dashed border-base-300 p-6 text-center text-sm opacity-70">
+            <li class="col-span-full rounded-box border border-dashed border-base-300 p-10 text-center text-sm opacity-60">
                 {{ $showArchived ? 'Nenhum exercício arquivado.' : 'Nenhum exercício encontrado.' }}
             </li>
         @endforelse

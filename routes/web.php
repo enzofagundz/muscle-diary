@@ -3,6 +3,7 @@
 use App\Livewire\Dashboard;
 use App\Livewire\Exercises;
 use App\Livewire\Login;
+use App\Livewire\Templates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -15,6 +16,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
 
     Route::get('/exercises', Exercises::class)->name('exercises.index');
+
+    Route::get('/templates', Templates\Index::class)->name('templates.index');
+    Route::get('/templates/{template}', Templates\Show::class)->name('templates.edit');
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();

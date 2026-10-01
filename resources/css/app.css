@@ -1,7 +1,46 @@
 @import 'tailwindcss';
 
 @plugin "daisyui" {
-    themes: light --default, dark --prefersdark;
+    themes: false;
+}
+
+@plugin "daisyui/theme" {
+    name: "broadside";
+    default: true;
+    prefersdark: true;
+    color-scheme: dark;
+
+    --color-base-100: #23002b;
+    --color-base-200: #291900;
+    --color-base-300: #4a2b52;
+    --color-base-content: #ffffff;
+
+    --color-primary: #e894ff;
+    --color-primary-content: #23002b;
+    --color-secondary: #93ffe4;
+    --color-secondary-content: #23002b;
+    --color-accent: #ffac47;
+    --color-accent-content: #23002b;
+    --color-neutral: #291900;
+    --color-neutral-content: #ffffff;
+
+    --color-info: #93ffe4;
+    --color-info-content: #23002b;
+    --color-success: #93ffe4;
+    --color-success-content: #23002b;
+    --color-warning: #ffac47;
+    --color-warning-content: #23002b;
+    --color-error: #ff8a8a;
+    --color-error-content: #23002b;
+
+    --radius-selector: 6px;
+    --radius-field: 14px;
+    --radius-box: 14px;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
 }
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -10,6 +49,58 @@
 @source '../../resources/views/**/*.blade.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-display: 'Oswald', 'Arial Narrow', ui-sans-serif, sans-serif;
+
+    --color-deep-plum: #23002b;
+    --color-lavender-shock: #e894ff;
+    --color-espresso-brown: #291900;
+    --color-ink-teal: #002629;
+    --color-mint-signal: #93ffe4;
+    --color-amber-pulse: #ffac47;
+}
+
+@layer base {
+    body {
+        font-family: var(--font-sans);
+        letter-spacing: -0.022em;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+        font-weight: 700;
+        text-transform: uppercase;
+        line-height: 0.9;
+        letter-spacing: 0.008em;
+    }
+}
+
+@layer components {
+    .page-title {
+        font-size: 2rem;
+    }
+
+    @media (min-width: 40rem) {
+        .page-title {
+            font-size: 2.75rem;
+        }
+    }
+
+    .btn {
+        border-radius: 9999px;
+    }
+
+    .card {
+        border-radius: 14px;
+    }
+
+    .fieldset .label {
+        padding-inline: 0;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        opacity: 0.6;
+    }
 }

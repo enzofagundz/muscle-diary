@@ -27,6 +27,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany<WorkoutTemplate, $this>
+     */
+    public function workoutTemplates(): HasMany
+    {
+        return $this->hasMany(WorkoutTemplate::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
