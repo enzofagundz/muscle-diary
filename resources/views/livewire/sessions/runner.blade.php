@@ -71,7 +71,7 @@
                             <div class="min-w-0">
                                 <p class="truncate font-display text-2xl leading-none uppercase">{{ $item->exercise->name }}</p>
                                 <p class="mt-2 text-xs opacity-60">
-                                    {{ $item->planned_sets }} séries
+                                    {{ $item->setsCount() }} de {{ $item->planned_sets }} séries
                                     @if ($item->rep_min || $item->rep_max)
                                         · {{ $item->rep_min ?? '?' }}–{{ $item->rep_max ?? '?' }} reps
                                     @endif
@@ -94,10 +94,16 @@
                         @foreach ($item->sets as $set)
                             @php $draft = $setDrafts[$set->id] ?? []; @endphp
 
-                            <div class="rounded-box border border-base-300/60 p-3" wire:key="set-{{ $set->id }}">
+                            <div
+                                @class([
+                                    'rounded-box border border-base-300/60 p-3',
+                                    'border-l-4 border-l-primary/60 pl-4' => $set->part > 0,
+                                ])
+                                wire:key="set-{{ $set->id }}"
+                            >
                                 <div class="flex items-center gap-2">
                                     <span class="font-display w-8 shrink-0 text-lg leading-none opacity-60">
-                                        {{ $set->set_number }}{{ $set->part > 0 ? chr(97 + $set->part) : '' }}
+                                        {{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}
                                     </span>
 
                                     <input
@@ -148,9 +154,19 @@
                                         copiar anterior
                                     </button>
 
-                                    <button type="button" class="btn btn-ghost btn-xs text-error" wire:click="removeSet('{{ $set->id }}')">
-                                        remover
+                                    <button type="button" class="btn btn-ghost btn-xs" wire:click="addSegment('{{ $set->id }}')">
+                                        + segmento
                                     </button>
+
+                                    @if ($set->part > 0)
+                                        <button type="button" class="btn btn-ghost btn-xs text-error" wire:click="removeSegment('{{ $set->id }}')">
+                                            remover segmento
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-ghost btn-xs text-error" wire:click="removeSet('{{ $set->id }}')">
+                                            remover
+                                        </button>
+                                    @endif
                                 </div>
 
                                 <input

@@ -62,7 +62,43 @@ class Runner extends Component
 
     public function removeSet(string $setId): void
     {
-        $this->ownedSet($setId)->delete();
+        $set = $this->ownedSet($setId);
+
+        SessionSet::query()
+            ->where('session_item_id', $set->session_item_id)
+            ->where('set_number', $set->set_number)
+            ->delete();
+
+        $this->fillDrafts();
+    }
+
+    public function addSegment(string $setId): void
+    {
+        $set = $this->ownedSet($setId);
+
+        SessionSet::query()->create([
+            'user_id' => auth()->id(),
+            'session_item_id' => $set->session_item_id,
+            'set_number' => $set->set_number,
+            'part' => (int) SessionSet::query()
+                ->where('session_item_id', $set->session_item_id)
+                ->where('set_number', $set->set_number)
+                ->max('part') + 1,
+            'unit' => $set->unit->value,
+        ]);
+
+        $this->fillDrafts();
+    }
+
+    public function removeSegment(string $setId): void
+    {
+        $set = $this->ownedSet($setId);
+
+        if ($set->part === 0) {
+            return;
+        }
+
+        $set->delete();
 
         $this->fillDrafts();
     }

@@ -64,4 +64,13 @@ class SessionItem extends Model
     {
         return $this->hasMany(SessionSet::class)->orderBy('set_number')->orderBy('part');
     }
+
+    /**
+     * A set made of several segments (drop set, cluster, combined) still
+     * counts as one set, so the count is the highest set number reached.
+     */
+    public function setsCount(): int
+    {
+        return (int) $this->sets()->max('set_number');
+    }
 }
