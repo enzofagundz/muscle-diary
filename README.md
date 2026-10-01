@@ -88,7 +88,7 @@ keytool -genkeypair -v -keystore ~/diario-release.keystore -alias diario \
 E então empacote:
 
 ```sh
-php artisan native:package --android \
+php artisan native:package --android --no-tty \
     --keystore="$HOME/diario-release.keystore" \
     --keystore-password=SUA_SENHA \
     --key-alias=diario \
@@ -96,6 +96,16 @@ php artisan native:package --android \
 ```
 
 O APK sai em `nativephp/android/app/build/outputs/apk/release/`.
+
+O `--no-tty` importa quando não há terminal de verdade (um script, um agente, um CI): sem ele o Gradle falha com `TTY mode requires /dev/tty to be read/writable`.
+
+Para um APK de teste, sem chave de release, dá para compilar a variante de debug, que é assinada com a chave de debug e instala com `adb install`:
+
+```sh
+cd nativephp/android && ./gradlew assembleDebug --console=plain
+```
+
+O resultado sai em `nativephp/android/app/build/outputs/apk/debug/app-debug.apk`.
 
 O `config/nativephp.php` exclui do pacote o que não faz parte do app: testes, repositório git, dependências de desenvolvimento, backups e o banco de desenvolvimento.
 
