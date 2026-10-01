@@ -35,7 +35,7 @@ class SessionSet extends Model
         return [
             'set_number' => 'integer',
             'part' => 'integer',
-            'load' => 'decimal:2',
+            'load' => 'float',
             'unit' => LoadUnit::class,
             'reps' => 'integer',
             'is_warmup' => 'boolean',
