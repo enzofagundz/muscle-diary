@@ -161,7 +161,11 @@ class SyncService
                         ->orWhere('user_id', $user->id)),
                     fn (Builder $query) => $query->where('user_id', $user->id),
                 )
-                ->when($moment !== null, fn (Builder $query) => $query->where('updated_at', '>', $moment))
+                // `>=` and not `>`: timestamps only have second precision, so a
+                // row changed in the same second as the last pull would
+                // otherwise never come back. Re-sending it is harmless, because
+                // applying only overwrites what is not newer.
+                ->when($moment !== null, fn (Builder $query) => $query->where('updated_at', '>=', $moment))
                 ->get()
                 ->map(fn (Model $row): array => $this->export($row))
                 ->all();

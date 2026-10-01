@@ -314,6 +314,28 @@ it('propagates a deletion in both directions', function () {
     expect(WorkoutSession::on('device')->whereKey($session->id)->count())->toBe(1);
 });
 
+it('brings back a change made in the same second as the last pull', function () {
+    $user = User::factory()->create();
+
+    $session = WorkoutSession::on('server')->create([
+        'user_id' => $user->id,
+        'name' => 'Upper 1',
+        'performed_on' => '2026-09-29',
+        'updated_at' => '2026-09-29 20:00:00',
+    ]);
+
+    $moment = '2026-09-29 20:00:00';
+
+    WorkoutSession::on('server')->whereKey($session->id)->update([
+        'name' => 'Upper A',
+        'updated_at' => '2026-09-29 20:00:00',
+    ]);
+
+    $this->device->apply($this->server->pull($moment, $user));
+
+    expect(WorkoutSession::on('device')->whereKey($session->id)->value('name'))->toBe('Upper A');
+});
+
 it('never brings another account down to the device', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();

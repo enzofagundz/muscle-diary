@@ -250,7 +250,13 @@ return [
         'storage/framework/sessions',
         'storage/framework/cache',
         'storage/framework/testing',
+        'storage/framework/views',
         'storage/logs/laravel.log',
+        'storage/app/backups',
+        'database/database.sqlite',
+        'tests',
+        '.git',
+        'node_modules',
     ],
 
     /*

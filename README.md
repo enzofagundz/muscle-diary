@@ -53,10 +53,54 @@ php artisan native:jump --ip=<seu-ip-na-rede>
 
 Isso sobe o servidor, o bridge e o proxy do Vite, e mostra um QR code. Instale o app **Jump** no Android e escaneie o código, com celular e computador na mesma rede Wi-Fi. As mudanças recarregam sozinhas.
 
-Para gerar o APK assinado é preciso o Android Studio instalado:
+### Gerar o APK
+
+O build precisa do Android SDK. Sem o Android Studio, dá para instalar só as ferramentas de linha de comando:
 
 ```sh
-php artisan native:package
+export ANDROID_HOME="$HOME/android-sdk"
+mkdir -p "$ANDROID_HOME/cmdline-tools"
+curl -L -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+unzip -q /tmp/cmdtools.zip -d "$ANDROID_HOME/cmdline-tools"
+mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+    "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+```
+
+Com o SDK no lugar, gere a chave de assinatura uma vez e guarde os dois arquivos longe do repositório:
+
+```sh
+keytool -genkeypair -v -keystore ~/diario-release.keystore -alias diario \
+    -keyalg RSA -keysize 2048 -validity 10000
+```
+
+E então empacote:
+
+```sh
+php artisan native:package --android \
+    --keystore="$HOME/diario-release.keystore" \
+    --keystore-password=SUA_SENHA \
+    --key-alias=diario \
+    --key-password=SUA_SENHA
+```
+
+O APK sai em `nativephp/android/app/build/outputs/apk/release/`.
+
+O `config/nativephp.php` exclui do pacote o que não faz parte do app: testes, repositório git, dependências de desenvolvimento, backups e o banco de desenvolvimento.
+
+### Rodar num emulador
+
+O emulador precisa de uns 3 GB de RAM livres. Com a máquina apertada, ele não sobe:
+
+```sh
+export ANDROID_HOME="$HOME/android-sdk"
+"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+    "emulator" "system-images;android-35;google_apis;x86_64"
+echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd \
+    -n diario -k "system-images;android-35;google_apis;x86_64" -d pixel_6
+"$ANDROID_HOME/emulator/emulator" -avd diario -no-window -gpu swiftshader_indirect
+php artisan native:run
 ```
 
 ## Importar as anotações antigas
