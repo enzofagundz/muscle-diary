@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 
 #[Fillable([
     'user_id',
@@ -72,5 +73,65 @@ class SessionItem extends Model
     public function setsCount(): int
     {
         return (int) $this->sets()->max('set_number');
+    }
+
+    /**
+     * The sets recorded the last time this exercise was performed, whatever
+     * template it was performed in, leaving the current session out.
+     *
+     * @return Collection<int, SessionSet>
+     */
+    public function lastPerformance(): Collection
+    {
+        $previous = static::query()
+            ->join('workout_sessions', 'workout_sessions.id', '=', 'session_items.workout_session_id')
+            ->where('session_items.exercise_id', $this->exercise_id)
+            ->where('session_items.user_id', $this->user_id)
+            ->where('session_items.workout_session_id', '!=', $this->workout_session_id)
+            ->whereNull('workout_sessions.deleted_at')
+            ->orderByDesc('workout_sessions.performed_on')
+            ->orderByDesc('workout_sessions.created_at')
+            ->select('session_items.*')
+            ->first();
+
+        if ($previous === null) {
+            return collect();
+        }
+
+        return $previous->sets
+            ->where('is_warmup', false)
+            ->values();
+    }
+
+    /**
+     * How the best set of this workout compares with the best set of the last
+     * one: 1 above, 0 the same, -1 below, null when there is nothing to
+     * compare or the units do not match.
+     */
+    public function trend(): ?int
+    {
+        return self::compare($this->bestSet(), $this->lastPerformance()->pipe(
+            fn (Collection $sets) => $sets->filter(fn (SessionSet $set): bool => $set->load !== null)
+                ->sortByDesc(fn (SessionSet $set): array => [(float) $set->load, $set->reps ?? 0])
+                ->first(),
+        ));
+    }
+
+    public function bestSet(): ?SessionSet
+    {
+        return $this->sets
+            ->where('is_warmup', false)
+            ->filter(fn (SessionSet $set): bool => $set->load !== null)
+            ->sortByDesc(fn (SessionSet $set): array => [(float) $set->load, $set->reps ?? 0])
+            ->first();
+    }
+
+    private static function compare(?SessionSet $current, ?SessionSet $previous): ?int
+    {
+        if ($current === null || $previous === null || $current->unit !== $previous->unit) {
+            return null;
+        }
+
+        return [(float) $current->load, $current->reps ?? 0] <=> [(float) $previous->load, $previous->reps ?? 0];
     }
 }

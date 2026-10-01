@@ -236,8 +236,12 @@ class Runner extends Component
 
     public function render(): View
     {
+        $items = $this->session->items()->with(['exercise', 'sets'])->get();
+
         return view('livewire.sessions.runner', [
-            'items' => $this->session->items()->with(['exercise', 'sets'])->get(),
+            'items' => $items,
+            'references' => $items->mapWithKeys(fn (SessionItem $item): array => [$item->id => $item->lastPerformance()]),
+            'trends' => $items->mapWithKeys(fn (SessionItem $item): array => [$item->id => $item->trend()]),
             'exercises' => Exercise::query()
                 ->visibleTo(auth()->user())
                 ->orderBy('muscle_group')

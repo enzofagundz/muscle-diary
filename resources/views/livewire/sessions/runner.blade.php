@@ -97,15 +97,44 @@
                             </div>
                         </div>
 
-                        <button
-                            type="button"
-                            class="btn btn-ghost btn-xs text-error"
-                            wire:click="removeItem('{{ $item->id }}')"
-                            wire:confirm="Remover este exercício do treino?"
-                        >
-                            Remover
-                        </button>
+                        <div class="flex shrink-0 items-center gap-2">
+                            @php $trend = $trends[$item->id] ?? null; @endphp
+
+                            @if ($trend !== null)
+                                <span
+                                    @class([
+                                        'font-display text-xl leading-none',
+                                        'text-primary' => $trend > 0,
+                                        'opacity-40' => $trend === 0,
+                                        'text-error' => $trend < 0,
+                                    ])
+                                    title="Comparado com a última vez"
+                                >{{ $trend > 0 ? '↑' : ($trend < 0 ? '↓' : '=') }}</span>
+                            @endif
+
+                            <button
+                                type="button"
+                                class="btn btn-ghost btn-xs text-error"
+                                wire:click="removeItem('{{ $item->id }}')"
+                                wire:confirm="Remover este exercício do treino?"
+                            >
+                                Remover
+                            </button>
+                        </div>
                     </div>
+
+                    @php $reference = $references[$item->id] ?? collect(); @endphp
+
+                    @if ($reference->isNotEmpty())
+                        <p class="text-xs opacity-60">
+                            <span class="tracking-[0.15em] uppercase">Última vez</span>
+                            @foreach ($reference as $previousSet)
+                                · {{ $previousSet->set_number }}{{ $previousSet->part > 0 ? chr(96 + $previousSet->part) : '' }}
+                                {{ $previousSet->load === null ? '—' : rtrim(rtrim(number_format($previousSet->load, 2, ',', ''), '0'), ',') }}
+                                {{ $previousSet->unit->label() }} × {{ $previousSet->reps ?? '—' }}
+                            @endforeach
+                        </p>
+                    @endif
 
                     <div class="flex flex-col gap-2">
                         @foreach ($item->sets as $set)
