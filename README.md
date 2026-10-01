@@ -75,7 +75,7 @@ mkdir -p ~/.local/jdks
 curl -L -o /tmp/jdk21.tar.gz \
     "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse"
 tar xzf /tmp/jdk21.tar.gz -C ~/.local/jdks
-export JAVA_HOME=~/\.local/jdks/jdk-21*
+export JAVA_HOME=$HOME/.local/jdks/jdk-21*
 ```
 
 Com o SDK no lugar, gere a chave de assinatura uma vez e guarde os dois arquivos longe do repositório:
