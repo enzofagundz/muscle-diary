@@ -30,6 +30,10 @@ return [
     |
     */
 
+    'backups' => [
+        'path' => env('DB_BACKUP_PATH', storage_path('app/backups')),
+    ],
+
     'connections' => [
 
         'sqlite' => [
