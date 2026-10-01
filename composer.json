@@ -9,7 +9,8 @@
         "php": "^8.3",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
-        "livewire/livewire": "^4.4"
+        "livewire/livewire": "^4.4",
+        "nativephp/mobile": "^4.5"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -18,6 +19,7 @@
         "laravel/pao": "^1.0.6",
         "laravel/pint": "^1.27",
         "mockery/mockery": "^1.6",
+        "nativephp/php-bin": "^1.2",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^5.3",
         "pestphp/pest-plugin-drift": "^5.0",
