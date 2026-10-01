@@ -117,7 +117,7 @@ class Index extends Component
     {
         $template = $this->ownedTemplate($id);
 
-        $template->items()->delete();
+        $template->items()->get()->each->delete();
         $template->delete();
     }
 

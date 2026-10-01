@@ -3,8 +3,10 @@
 use App\Models\Exercise;
 use App\Models\SessionItem;
 use App\Models\SessionSet;
+use App\Models\TemplateItem;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Models\WorkoutTemplate;
 use App\Services\SyncService;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -213,4 +215,117 @@ it('takes a workout pushed through the endpoint', function () {
         ->assertJsonPath('written.workout_sessions', 1);
 
     expect(WorkoutSession::on('server')->count())->toBe(1);
+});
+
+it('sends a template created on the device with its items', function () {
+    $user = User::factory()->create();
+
+    $exercise = Exercise::on('device')->create([
+        'user_id' => $user->id,
+        'name' => 'Remada cavalinho',
+        'muscle_group' => 'Costas',
+        'unit_default' => 'plate',
+    ]);
+
+    $template = WorkoutTemplate::on('device')->create([
+        'user_id' => $user->id,
+        'name' => 'Upper 1',
+        'rest_seconds' => 90,
+        'position' => 1,
+    ]);
+
+    TemplateItem::on('device')->create([
+        'user_id' => $user->id,
+        'workout_template_id' => $template->id,
+        'exercise_id' => $exercise->id,
+        'position' => 1,
+        'sets' => 4,
+        'rep_min' => 8,
+        'rep_max' => 12,
+    ]);
+
+    $this->server->push($this->device->pending(), $user);
+
+    expect(WorkoutTemplate::on('server')->value('name'))->toBe('Upper 1')
+        ->and(TemplateItem::on('server')->value('sets'))->toBe(4)
+        ->and(Exercise::on('server')->where('name', 'Remada cavalinho')->value('muscle_group'))->toBe('Costas');
+});
+
+it('brings the shared catalog down to the device', function () {
+    $user = User::factory()->create();
+
+    Exercise::on('server')->create([
+        'user_id' => null,
+        'name' => 'Supino máquina',
+        'muscle_group' => 'Peito',
+        'unit_default' => 'plate',
+    ]);
+
+    $this->device->apply($this->server->pull(null, $user));
+
+    expect(Exercise::on('device')->where('name', 'Supino máquina')->value('user_id'))->toBeNull();
+});
+
+it('never lets the device rewrite the shared catalog', function () {
+    $user = User::factory()->create();
+
+    $catalog = Exercise::on('server')->create([
+        'user_id' => null,
+        'name' => 'Supino máquina',
+        'muscle_group' => 'Peito',
+        'unit_default' => 'plate',
+    ]);
+
+    $this->server->push([
+        'exercises' => [[
+            'id' => $catalog->id,
+            'user_id' => null,
+            'name' => 'Nome trocado pelo aparelho',
+            'muscle_group' => 'Peito',
+            'unit_default' => 'plate',
+            'updated_at' => '2030-01-01 00:00:00',
+        ]],
+    ], $user);
+
+    expect(Exercise::on('server')->whereKey($catalog->id)->value('name'))->toBe('Supino máquina');
+});
+
+it('propagates a deletion in both directions', function () {
+    $user = User::factory()->create();
+
+    $session = recordOnDevice($user, [[14, 'plate', 12]]);
+
+    $this->server->push($this->device->pending(), $user);
+    $this->device->markSynced($this->device->pending());
+
+    WorkoutSession::on('device')->whereKey($session->id)->first()->delete();
+
+    $this->server->push($this->device->pending(), $user);
+    $this->device->markSynced($this->device->pending());
+
+    expect(WorkoutSession::on('server')->withTrashed()->whereKey($session->id)->first()->trashed())->toBeTrue()
+        ->and(WorkoutSession::on('server')->count())->toBe(0);
+
+    $serverSession = WorkoutSession::on('server')->withTrashed()->whereKey($session->id)->first();
+    $serverSession->forceFill(['deleted_at' => null, 'updated_at' => now()->addDay()])->save();
+
+    $this->device->apply($this->server->pull(null, $user));
+
+    expect(WorkoutSession::on('device')->whereKey($session->id)->count())->toBe(1);
+});
+
+it('never brings another account down to the device', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    WorkoutTemplate::on('server')->create([
+        'user_id' => $other->id,
+        'name' => 'Modelo alheio',
+        'rest_seconds' => 90,
+        'position' => 1,
+    ]);
+
+    $this->device->apply($this->server->pull(null, $user));
+
+    expect(WorkoutTemplate::on('device')->count())->toBe(0);
 });

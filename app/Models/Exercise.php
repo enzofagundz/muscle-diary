@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LoadUnit;
+use App\Models\Concerns\Syncable;
 use Database\Factories\ExerciseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Exercise extends Model
 {
     /** @use HasFactory<ExerciseFactory> */
-    use HasFactory, HasUlids, SoftDeletes;
+    use HasFactory, HasUlids, SoftDeletes, Syncable;
 
     /**
      * @return array<string, string>

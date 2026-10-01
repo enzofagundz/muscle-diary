@@ -56,7 +56,7 @@ class Runner extends Component
     public function discard(): void
     {
         foreach ($this->session->items()->with('sets')->get() as $item) {
-            $item->sets()->delete();
+            $item->sets()->get()->each->delete();
             $item->delete();
         }
 
@@ -86,7 +86,8 @@ class Runner extends Component
         SessionSet::query()
             ->where('session_item_id', $set->session_item_id)
             ->where('set_number', $set->set_number)
-            ->delete();
+            ->get()
+            ->each->delete();
 
         $this->fillDrafts();
     }

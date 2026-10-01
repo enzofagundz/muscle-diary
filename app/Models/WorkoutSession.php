@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Syncable;
 use Database\Factories\WorkoutSessionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class WorkoutSession extends Model
 {
     /** @use HasFactory<WorkoutSessionFactory> */
-    use HasFactory, HasUlids, SoftDeletes;
+    use HasFactory, HasUlids, SoftDeletes, Syncable;
 
     /**
      * @return array<string, string>

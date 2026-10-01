@@ -2,10 +2,13 @@
 
 namespace App\Services;
 
+use App\Models\Exercise;
 use App\Models\SessionItem;
 use App\Models\SessionSet;
+use App\Models\TemplateItem;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use App\Models\WorkoutTemplate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -27,6 +30,9 @@ class SyncService
      * @var list<string>
      */
     public const TABLES = [
+        'exercises',
+        'workout_templates',
+        'template_items',
         'workout_sessions',
         'session_items',
         'session_sets',
@@ -38,6 +44,18 @@ class SyncService
      * @var array<string, list<string>>
      */
     private const COLUMNS = [
+        'exercises' => [
+            'id', 'user_id', 'based_on_id', 'name', 'muscle_group', 'unit_default', 'kg_per_plate',
+            'notes', 'created_at', 'updated_at', 'deleted_at',
+        ],
+        'workout_templates' => [
+            'id', 'user_id', 'name', 'rest_seconds', 'notes', 'position', 'is_active',
+            'created_at', 'updated_at', 'deleted_at',
+        ],
+        'template_items' => [
+            'id', 'user_id', 'workout_template_id', 'exercise_id', 'position', 'sets', 'rep_min',
+            'rep_max', 'rest_seconds', 'notes', 'created_at', 'updated_at', 'deleted_at',
+        ],
         'workout_sessions' => [
             'id', 'user_id', 'workout_template_id', 'name', 'performed_on', 'location',
             'rest_seconds', 'notes', 'finished_at', 'created_at', 'updated_at', 'deleted_at',
@@ -65,10 +83,8 @@ class SyncService
 
         foreach (self::TABLES as $table) {
             $rows = $this->query($table)
-                ->where(function (Builder $query): void {
-                    $query->whereNull('synced_at')
-                        ->orWhereColumn('updated_at', '>', 'synced_at');
-                })
+                ->when($table === 'exercises', fn (Builder $query) => $query->whereNotNull('user_id'))
+                ->whereNull('synced_at')
                 ->get()
                 ->map(fn (Model $row): array => $this->export($row))
                 ->all();
@@ -100,10 +116,20 @@ class SyncService
                     continue;
                 }
 
+                if ($table === 'exercises' && ($row['user_id'] ?? null) === null) {
+                    // The shared catalog belongs to the server: a device never
+                    // gets to rewrite it.
+                    continue;
+                }
+
                 $row['user_id'] = $user->id;
                 $existing = $this->query($table)->whereKey($id)->first();
 
-                if ($existing !== null && $existing->updated_at >= $this->moment($row['updated_at'] ?? null)) {
+                // Only a strictly newer copy loses; equal timestamps let the
+                // arriving row win, because timestamps here have second
+                // precision and a change made in the same second as the
+                // previous one would otherwise never travel.
+                if ($existing !== null && $existing->updated_at > $this->moment($row['updated_at'] ?? null)) {
                     continue;
                 }
 
@@ -128,7 +154,13 @@ class SyncService
 
         foreach (self::TABLES as $table) {
             $rows = $this->query($table)
-                ->where('user_id', $user->id)
+                ->when(
+                    $table === 'exercises',
+                    fn (Builder $query) => $query->where(fn (Builder $query) => $query
+                        ->whereNull('user_id')
+                        ->orWhere('user_id', $user->id)),
+                    fn (Builder $query) => $query->where('user_id', $user->id),
+                )
                 ->when($moment !== null, fn (Builder $query) => $query->where('updated_at', '>', $moment))
                 ->get()
                 ->map(fn (Model $row): array => $this->export($row))
@@ -165,7 +197,7 @@ class SyncService
                     continue;
                 }
 
-                if ($existing !== null && $existing->updated_at >= $this->moment($row['updated_at'] ?? null)) {
+                if ($existing !== null && $existing->updated_at > $this->moment($row['updated_at'] ?? null)) {
                     continue;
                 }
 
@@ -212,7 +244,7 @@ class SyncService
 
     private function isPending(Model $row): bool
     {
-        return $row->synced_at === null || $row->updated_at > $row->synced_at;
+        return $row->synced_at === null;
     }
 
     private function moment(?string $value): Carbon
@@ -226,6 +258,9 @@ class SyncService
     private function query(string $table): Builder
     {
         $class = match ($table) {
+            'exercises' => Exercise::class,
+            'workout_templates' => WorkoutTemplate::class,
+            'template_items' => TemplateItem::class,
             'workout_sessions' => WorkoutSession::class,
             'session_items' => SessionItem::class,
             'session_sets' => SessionSet::class,

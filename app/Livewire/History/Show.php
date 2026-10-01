@@ -76,7 +76,7 @@ class Show extends Component
     public function delete(): void
     {
         foreach ($this->session->items()->with('sets')->get() as $item) {
-            $item->sets()->delete();
+            $item->sets()->get()->each->delete();
             $item->delete();
         }
 

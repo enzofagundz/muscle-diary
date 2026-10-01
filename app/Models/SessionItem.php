@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\LoadUnit;
+use App\Models\Concerns\Syncable;
 use Database\Factories\SessionItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -27,7 +28,7 @@ use Illuminate\Support\Collection;
 class SessionItem extends Model
 {
     /** @use HasFactory<SessionItemFactory> */
-    use HasFactory, HasUlids, SoftDeletes;
+    use HasFactory, HasUlids, SoftDeletes, Syncable;
 
     /**
      * @return array<string, string>
