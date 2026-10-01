@@ -5,6 +5,7 @@ use App\Livewire\Exercises;
 use App\Livewire\History;
 use App\Livewire\Login;
 use App\Livewire\Sessions;
+use App\Livewire\Sync;
 use App\Livewire\Templates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,6 +25,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/templates/{template}', Templates\Show::class)->name('templates.edit');
 
     Route::get('/sessions/{session}', Sessions\Runner::class)->name('sessions.run');
+
+    Route::get('/sync', Sync::class)->name('sync.index');
 
     Route::get('/history', History\Index::class)->name('history.index');
     Route::get('/history/{session}', History\Show::class)->name('history.show');

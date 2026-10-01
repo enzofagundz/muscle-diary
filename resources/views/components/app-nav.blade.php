@@ -3,6 +3,7 @@
         ['label' => 'Histórico', 'route' => 'history.index', 'active' => 'history.*'],
         ['label' => 'Exercícios', 'route' => 'exercises.index', 'active' => 'exercises.*'],
         ['label' => 'Modelos', 'route' => 'templates.index', 'active' => 'templates.*'],
+        ['label' => 'Sync', 'route' => 'sync.index', 'active' => 'sync.*'],
     ];
 @endphp
 
