@@ -88,7 +88,11 @@
             <li class="card bg-base-200" wire:key="{{ $exercise->id }}">
                 <div class="card-body flex-row items-center justify-between gap-3 p-5">
                     <div class="min-w-0">
-                        <p class="truncate font-medium">{{ $exercise->name }}</p>
+                        <a
+                            href="{{ route('exercises.show', $exercise) }}"
+                            class="truncate font-medium hover:text-primary"
+                            wire:navigate
+                        >{{ $exercise->name }}</a>
                         <p class="mt-1 text-xs opacity-60">
                             {{ $exercise->muscle_group }} · {{ $exercise->unit_default->label() }}
                             @if ($exercise->isGlobal())

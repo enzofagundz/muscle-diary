@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
 
     Route::get('/exercises', Exercises::class)->name('exercises.index');
+    Route::get('/exercises/{exercise}', Exercises\Show::class)->name('exercises.show');
 
     Route::get('/templates', Templates\Index::class)->name('templates.index');
     Route::get('/templates/{template}', Templates\Show::class)->name('templates.edit');
