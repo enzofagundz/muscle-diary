@@ -92,7 +92,7 @@ it('leaves everything pending when the push fails', function () {
 
     Http::fake(['*' => Http::response([], 500)]);
 
-    Livewire::actingAs($user)->test(Sync::class)->call('sync')->assertSee('O envio falhou');
+    Livewire::actingAs($user)->test(Sync::class)->call('sync')->assertSee('A sincronização falhou');
 
     expect(WorkoutSession::query()->whereNull('synced_at')->count())->toBe(1)
         ->and(SyncSetting::current()->last_synced_at)->toBeNull();

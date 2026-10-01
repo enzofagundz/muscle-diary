@@ -7,6 +7,7 @@ use App\Models\Exercise;
 use App\Models\SessionItem;
 use App\Models\SessionSet;
 use App\Models\WorkoutSession;
+use App\Services\SyncRunner;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -49,6 +50,8 @@ class Runner extends Component
     public function finish(): void
     {
         $this->session->update(['finished_at' => now()]);
+
+        app(SyncRunner::class)->runInBackground();
 
         $this->redirectRoute('history.show', $this->session, navigate: true);
     }

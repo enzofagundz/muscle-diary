@@ -3,7 +3,9 @@
 namespace App\Livewire;
 
 use App\Models\SyncSetting;
+use App\Services\SyncRunner;
 use App\Services\SyncService;
+use App\Support\NativeNetwork;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -72,45 +74,25 @@ class Sync extends Component
 
     public function sync(): void
     {
-        $settings = SyncSetting::current();
+        $runner = app(SyncRunner::class);
 
-        if (! $settings->isConnected()) {
+        if (! $runner->isConnected()) {
             $this->failure = 'Conecte o aparelho a um servidor primeiro.';
 
             return;
         }
 
-        $sync = new SyncService;
-
-        $payload = $sync->pending();
-
-        $push = Http::withToken($settings->token)
-            ->acceptJson()
-            ->post($settings->server_url.'/api/sync/push', ['rows' => $payload]);
-
-        if ($push->failed()) {
-            $this->failure = 'O envio falhou. Nada foi marcado como sincronizado, então dá para tentar de novo.';
+        if (! NativeNetwork::isConnected()) {
+            $this->failure = 'Sem conexão agora. O que está pendente continua guardado.';
 
             return;
         }
 
-        $sync->markSynced($payload);
-
-        $pull = Http::withToken($settings->token)
-            ->acceptJson()
-            ->get($settings->server_url.'/api/sync/pull', [
-                'since' => $settings->last_synced_at?->toIso8601String(),
-            ]);
-
-        if ($pull->failed()) {
-            $this->failure = 'O envio foi, mas o recebimento falhou. Tente de novo.';
+        if (! $runner->run()) {
+            $this->failure = 'A sincronização falhou. Nada foi perdido: o que está pendente continua pendente.';
 
             return;
         }
-
-        $sync->apply($pull->json('rows', []));
-
-        $settings->update(['last_synced_at' => now()]);
 
         $this->failure = null;
         $this->notice = 'Sincronizado.';
