@@ -1,3 +1,5 @@
+@props(['native' => false])
+
 @php
     $links = [
         ['label' => 'Histórico', 'route' => 'history.index', 'active' => 'history.*'],
@@ -14,7 +16,10 @@
         wire:navigate
     >Diário de Treino</a>
 
-    <nav class="order-3 flex w-full items-center gap-5 border-t border-base-300/40 pt-3 sm:order-2 sm:w-auto sm:border-0 sm:pt-0">
+    <nav @class([
+        'order-3 flex w-full items-center gap-5 border-t border-base-300/40 pt-3 sm:order-2 sm:w-auto sm:border-0 sm:pt-0',
+        'hidden' => $native,
+    ])>
         @foreach ($links as $link)
             <a
                 href="{{ route($link['route']) }}"

@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Models\WorkoutTemplate;
+use App\Support\NativeApp;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -21,6 +22,17 @@ class Dashboard extends Component
     {
         $this->performedOn = now()->toDateString();
         $this->templateId = WorkoutTemplate::nextInRotationFor(auth()->user())?->id ?? '';
+
+        if (NativeApp::isRunning()) {
+            $inProgress = auth()->user()->workoutSessions()
+                ->whereNull('finished_at')
+                ->latest('created_at')
+                ->first();
+
+            if ($inProgress !== null) {
+                $this->redirectRoute('sessions.run', $inProgress, navigate: true);
+            }
+        }
     }
 
     public function start(): void

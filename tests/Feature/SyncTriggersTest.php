@@ -5,6 +5,7 @@ use App\Models\SyncSetting;
 use App\Models\User;
 use App\Models\WorkoutSession;
 use App\Services\SyncRunner;
+use App\Support\NativeNetwork;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -94,4 +95,8 @@ it('does not hold up the screen when the server is down', function () {
     Http::fake(['*' => Http::response([], 500)]);
 
     $this->actingAs($user)->get(route('dashboard'))->assertOk();
+});
+
+it('assumes there is a connection when there is no device to ask', function () {
+    expect(NativeNetwork::isConnected())->toBeTrue();
 });

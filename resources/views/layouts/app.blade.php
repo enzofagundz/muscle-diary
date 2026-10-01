@@ -1,5 +1,9 @@
 @props(['title' => null])
 
+@php
+    $native = app(\App\Support\NativeApp::class)->isRunning();
+@endphp
+
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="broadside">
     <head>
@@ -8,13 +12,25 @@
         <title>{{ $title ?? config('app.name') }}</title>
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="min-h-screen bg-base-100 text-base-content antialiased">
+    <body @class([
+        'min-h-screen bg-base-100 text-base-content antialiased',
+        'native-shell' => $native,
+    ])>
         @auth
-            <x-app-nav />
+            <x-app-nav :native="$native" />
         @endauth
 
-        <main class="mx-auto w-full max-w-[1200px] px-5 py-8">
+        <main @class([
+            'mx-auto w-full max-w-[1200px] px-5 py-8',
+            'pb-24' => $native && auth()->check(),
+        ])>
             {{ $slot }}
         </main>
+
+        @auth
+            @if ($native)
+                <x-mobile-tabbar />
+            @endif
+        @endauth
     </body>
 </html>
