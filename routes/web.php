@@ -3,6 +3,7 @@
 use App\Livewire\Dashboard;
 use App\Livewire\Exercises;
 use App\Livewire\Login;
+use App\Livewire\Sessions;
 use App\Livewire\Templates;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/templates', Templates\Index::class)->name('templates.index');
     Route::get('/templates/{template}', Templates\Show::class)->name('templates.edit');
+
+    Route::get('/sessions/{session}', Sessions\Runner::class)->name('sessions.run');
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();
