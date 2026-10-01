@@ -19,7 +19,7 @@
 
         <select class="select w-full" wire:model.live="muscleGroup" aria-label="Filtrar por grupo muscular">
             <option value="">Todos os grupos</option>
-            @foreach ($groups as $group)
+            @foreach ($muscleGroups as $group)
                 <option value="{{ $group }}">{{ $group }}</option>
             @endforeach
         </select>
@@ -60,6 +60,40 @@
         </section>
     @endif
 
+    @if ($groups->isNotEmpty())
+        <section class="mt-8">
+            <h2 class="font-display text-lg tracking-wide uppercase">Por grupo muscular</h2>
+
+            <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+                @foreach ($groups as $group)
+                    <li class="card bg-base-200" wire:key="group-{{ $group['name'] }}">
+                        <div class="card-body flex-row items-center justify-between gap-3 p-5">
+                            <div class="min-w-0">
+                                <p class="font-medium">{{ $group['name'] }}</p>
+                                <p class="mt-1 text-xs opacity-60">
+                                    {{ $group['sets'] }} {{ $group['sets'] === 1 ? 'série' : 'séries' }}
+                                    @if ($group['volumeInKg'] > 0)
+                                        · {{ rtrim(rtrim(number_format($group['volumeInKg'], 0, ',', '.'), '0'), ',') }} kg
+                                    @endif
+                                </p>
+                            </div>
+
+                            <span
+                                @class([
+                                    'badge badge-xs shrink-0',
+                                    'badge-outline badge-primary' => $group['daysSince'] <= 7,
+                                    'badge-ghost' => $group['daysSince'] > 7,
+                                ])
+                            >
+                                {{ $group['daysSince'] === 0 ? 'hoje' : $group['daysSince'].' dias' }}
+                            </span>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     @forelse ($weeks as $week)
         <section class="mt-8" wire:key="week-{{ $week['start']->toDateString() }}">
             <div class="flex items-baseline justify-between gap-3">
@@ -68,6 +102,9 @@
                 </h2>
                 <span class="text-xs opacity-60">
                     {{ $week['sessions']->count() }} {{ $week['sessions']->count() === 1 ? 'treino' : 'treinos' }}
+                    @if ($week['volume'] > 0)
+                        · {{ rtrim(rtrim(number_format($week['volume'], 0, ',', '.'), '0'), ',') }} kg
+                    @endif
                 </span>
             </div>
 

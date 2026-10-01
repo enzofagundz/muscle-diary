@@ -29,11 +29,13 @@ class Exercises extends Component
 
     public ?string $notes = null;
 
+    public ?string $kgPerPlate = null;
+
     public ?string $notice = null;
 
     public function create(): void
     {
-        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes');
+        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes', 'kgPerPlate');
         $this->unitDefault = LoadUnit::Kilograms->value;
         $this->formOpen = true;
         $this->notice = null;
@@ -60,12 +62,19 @@ class Exercises extends Component
         $this->muscleGroup = $exercise->muscle_group;
         $this->unitDefault = $exercise->unit_default->value;
         $this->notes = $exercise->notes;
+        $this->kgPerPlate = $exercise->kg_per_plate === null
+            ? null
+            : rtrim(rtrim($exercise->kg_per_plate, '0'), '.');
         $this->formOpen = true;
         $this->resetValidation();
     }
 
     public function save(): void
     {
+        $this->kgPerPlate = $this->kgPerPlate === null
+            ? null
+            : str_replace(',', '.', $this->kgPerPlate);
+
         $validated = $this->validate([
             'name' => [
                 'required',
@@ -79,13 +88,17 @@ class Exercises extends Component
             'muscleGroup' => ['required', Rule::in(MuscleGroup::values())],
             'unitDefault' => ['required', Rule::enum(LoadUnit::class)],
             'notes' => ['nullable', 'string', 'max:1000'],
-        ]);
+            'kgPerPlate' => ['nullable', 'numeric', 'min:0', 'max:999'],
+        ], attributes: ['kgPerPlate' => 'peso da placa']);
 
         $attributes = [
             'name' => trim($validated['name']),
             'muscle_group' => $validated['muscleGroup'],
             'unit_default' => $validated['unitDefault'],
             'notes' => $validated['notes'],
+            'kg_per_plate' => $validated['kgPerPlate'] === null || $validated['kgPerPlate'] === ''
+                ? null
+                : (float) $validated['kgPerPlate'],
         ];
 
         if ($this->editingId === null) {
@@ -97,14 +110,14 @@ class Exercises extends Component
         }
 
         $this->formOpen = false;
-        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes');
+        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes', 'kgPerPlate');
     }
 
     public function cancel(): void
     {
         $this->formOpen = false;
         $this->notice = null;
-        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes');
+        $this->reset('editingId', 'name', 'muscleGroup', 'unitDefault', 'notes', 'kgPerPlate');
         $this->resetValidation();
     }
 

@@ -52,6 +52,15 @@
                 </div>
 
                 <label class="fieldset">
+                    <span class="label">Quantos kg vale uma placa (opcional)</span>
+                    <input type="text" inputmode="decimal" class="input w-full" wire:model="kgPerPlate" placeholder="4,5">
+                    <span class="text-xs opacity-50">
+                        Só serve para somar o volume de exercícios em placas junto com os de kg.
+                    </span>
+                    @error('kgPerPlate') <span class="text-error text-sm">{{ $message }}</span> @enderror
+                </label>
+
+                <label class="fieldset">
                     <span class="label">Observações</span>
                     <textarea class="textarea w-full" rows="2" wire:model="notes"></textarea>
                     @error('notes') <span class="text-error text-sm">{{ $message }}</span> @enderror

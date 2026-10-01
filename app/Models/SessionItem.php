@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LoadUnit;
 use Database\Factories\SessionItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
@@ -137,6 +138,43 @@ class SessionItem extends Model
             'load' => round((float) $current->load - (float) $previous->load, 2),
             'reps' => ($current->reps ?? 0) - ($previous->reps ?? 0),
         ];
+    }
+
+    /**
+     * Volume of the working sets, in the item's own unit: load times reps,
+     * converted to kilograms when the exercise says how much a plate weighs.
+     *
+     * @return array{value: float, unit: string}|null
+     */
+    public function volume(): ?array
+    {
+        $sets = $this->sets
+            ->where('is_warmup', false)
+            ->filter(fn (SessionSet $set): bool => $set->load !== null && $set->reps !== null);
+
+        if ($sets->isEmpty()) {
+            return null;
+        }
+
+        $unit = $sets->first()->unit;
+
+        if ($sets->contains(fn (SessionSet $set): bool => $set->unit !== $unit)) {
+            return null;
+        }
+
+        $value = $sets->sum(fn (SessionSet $set): float => (float) $set->load * $set->reps);
+
+        if ($unit === LoadUnit::Kilograms) {
+            return ['value' => round($value, 2), 'unit' => 'kg'];
+        }
+
+        $perPlate = $this->exercise?->kg_per_plate;
+
+        if ($unit === LoadUnit::Plates && $perPlate !== null) {
+            return ['value' => round($value * (float) $perPlate, 2), 'unit' => 'kg'];
+        }
+
+        return ['value' => round($value, 2), 'unit' => $unit->label()];
     }
 
     public function bestSet(): ?SessionSet

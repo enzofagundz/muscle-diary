@@ -4,6 +4,7 @@ namespace App\Livewire\History;
 
 use App\Enums\MuscleGroup;
 use App\Models\Exercise;
+use App\Models\SessionItem;
 use App\Models\WorkoutSession;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -36,15 +37,17 @@ class Index extends Component
                 fn ($query) => $query->where('muscle_group', $this->muscleGroup),
             ))
             ->when($this->location !== '', fn ($query) => $query->where('location', $this->location))
+            ->with(['items.exercise', 'items.sets'])
             ->orderByDesc('performed_on')
             ->orderByDesc('finished_at')
             ->get();
 
         return view('livewire.history.index', [
             'weeks' => $this->weeks($finished),
+            'groups' => $this->groups($finished),
             'templates' => $user->workoutTemplates()->orderBy('name')->get(),
             'exercises' => Exercise::query()->visibleTo($user)->orderBy('name')->get(),
-            'groups' => MuscleGroup::values(),
+            'muscleGroups' => MuscleGroup::values(),
             'locations' => $user->workoutSessions()->whereNotNull('location')->distinct()->orderBy('location')->pluck('location'),
             'unfinished' => $user->workoutSessions()
                 ->whereNull('finished_at')
@@ -72,15 +75,48 @@ class Index extends Component
         for ($start = now()->startOfWeek(CarbonInterface::MONDAY); $start->greaterThanOrEqualTo($oldest); $start = $start->copy()->subWeek()) {
             $end = $start->copy()->endOfWeek(CarbonInterface::SUNDAY);
 
+            $weekSessions = $sessions
+                ->filter(fn (WorkoutSession $session): bool => $session->performed_on->betweenIncluded($start, $end))
+                ->values();
+
             $weeks[] = [
                 'start' => $start->copy(),
                 'end' => $end,
-                'sessions' => $sessions
-                    ->filter(fn (WorkoutSession $session): bool => $session->performed_on->betweenIncluded($start, $end))
-                    ->values(),
+                'sessions' => $weekSessions,
+                'volume' => round($weekSessions->sum(fn (WorkoutSession $session): float => $session->volumeInKg()), 2),
             ];
         }
 
         return $weeks;
+    }
+
+    /**
+     * How each muscle group is going: how much volume it accumulated and how
+     * long it has been since the last time it was trained.
+     *
+     * @param  Collection<int, WorkoutSession>  $sessions
+     * @return Collection<int, array{name: string, volumeInKg: float, sets: int, daysSince: int|null}>
+     */
+    private function groups(Collection $sessions): Collection
+    {
+        return $sessions
+            ->flatMap(fn (WorkoutSession $session) => $session->items->map(
+                fn (SessionItem $item): array => ['item' => $item, 'session' => $session],
+            ))
+            ->groupBy(fn (array $row): string => $row['item']->exercise->muscle_group)
+            ->map(function (Collection $rows, string $group): array {
+                $volumes = $rows->map(fn (array $row): ?array => $row['item']->volume());
+
+                return [
+                    'name' => $group,
+                    'volumeInKg' => round($volumes
+                        ->filter(fn (?array $volume): bool => $volume !== null && $volume['unit'] === 'kg')
+                        ->sum(fn (array $volume): float => $volume['value']), 2),
+                    'sets' => $rows->sum(fn (array $row): int => $row['item']->sets->where('is_warmup', false)->count()),
+                    'daysSince' => (int) $rows->max(fn (array $row) => $row['session']->performed_on)->diffInDays(now()),
+                ];
+            })
+            ->sortBy('name')
+            ->values();
     }
 }

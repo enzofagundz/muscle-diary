@@ -83,6 +83,23 @@ class WorkoutSession extends Model
             ->first();
     }
 
+    /**
+     * Volume of the whole workout in kilograms. Sets that cannot be converted
+     * — plates without a known weight — stay out instead of being counted as
+     * if they were kilograms.
+     */
+    public function volumeInKg(): float
+    {
+        $items = $this->relationLoaded('items')
+            ? $this->items
+            : $this->items()->with(['exercise', 'sets'])->get();
+
+        return round($items
+            ->map(fn (SessionItem $item): ?array => $item->volume())
+            ->filter(fn (?array $volume): bool => $volume !== null && $volume['unit'] === 'kg')
+            ->sum(fn (array $volume): float => $volume['value']), 2);
+    }
+
     public function durationInMinutes(): ?int
     {
         if ($this->finished_at === null) {

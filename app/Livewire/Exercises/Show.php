@@ -34,6 +34,7 @@ class Show extends Component
             'executions' => $executions,
             'best' => $this->best($executions),
             'chart' => $this->chart($executions),
+            'volumeChart' => $this->volumeChart($executions),
         ]);
     }
 
@@ -117,30 +118,59 @@ class Show extends Component
 
         return [
             'points' => $points->all(),
-            'polyline' => $this->polyline($points),
+            'polyline' => $this->polyline($points->pluck('load')),
             'unit' => $this->exercise->unit_default->label(),
         ];
     }
 
     /**
-     * @param  Collection<int, array{load: float, date: string}>  $points
+     * Volume of each execution, in kilograms, which is what makes workouts of
+     * different exercises comparable.
+     *
+     * @param  Collection<int, array{item: SessionItem, sets: Collection<int, SessionSet>, session: WorkoutSession}>  $executions
+     * @return array{points: array<int, array{volume: float, date: string}>, polyline: string, unit: string}
      */
-    private function polyline(Collection $points): string
+    private function volumeChart(Collection $executions): array
     {
-        if ($points->isEmpty()) {
+        $points = $executions
+            ->map(function (array $execution): ?array {
+                $volume = $execution['item']->volume();
+
+                return $volume === null || $volume['unit'] !== 'kg' ? null : [
+                    'volume' => $volume['value'],
+                    'date' => $execution['session']->performed_on->toDateString(),
+                ];
+            })
+            ->filter()
+            ->values();
+
+        return [
+            'points' => $points->all(),
+            'polyline' => $this->polyline($points->pluck('volume')),
+            'unit' => 'kg',
+        ];
+    }
+
+    /**
+     * @param  Collection<int, float>  $values
+     */
+    private function polyline(Collection $values): string
+    {
+        $values = $values->values();
+
+        if ($values->isEmpty()) {
             return '';
         }
 
-        $loads = $points->pluck('load');
-        $min = $loads->min();
-        $max = $loads->max();
+        $min = $values->min();
+        $max = $values->max();
         $span = $max - $min;
-        $lastIndex = max($points->count() - 1, 1);
+        $lastIndex = max($values->count() - 1, 1);
 
-        return $points
-            ->map(function (array $point, int $index) use ($min, $span, $lastIndex): string {
+        return $values
+            ->map(function (float $value, int $index) use ($min, $span, $lastIndex): string {
                 $x = round($index / $lastIndex * 100, 2);
-                $y = $span === 0.0 ? 20 : round(38 - (($point['load'] - $min) / $span) * 36, 2);
+                $y = $span === 0.0 ? 20 : round(38 - (($value - $min) / $span) * 36, 2);
 
                 return $x.','.$y;
             })

@@ -61,6 +61,30 @@
         </section>
     @endif
 
+    @if ($volumeChart['points'] !== [])
+        <section class="card mt-4 bg-base-200">
+            <div class="card-body gap-3 p-5">
+                <h2 class="font-display text-lg tracking-wide uppercase">Volume ao longo do tempo</h2>
+
+                <svg viewBox="0 0 100 40" preserveAspectRatio="none" class="h-32 w-full" role="img" aria-label="Volume ao longo do tempo">
+                    <polyline
+                        points="{{ $volumeChart['polyline'] }}"
+                        fill="none"
+                        stroke="#93ffe4"
+                        stroke-width="1"
+                        vector-effect="non-scaling-stroke"
+                        stroke-linejoin="round"
+                        stroke-linecap="round"
+                    />
+                </svg>
+
+                <p class="text-xs opacity-60">
+                    Carga vezes repetições de cada execução, em {{ $volumeChart['unit'] }}, sem as séries de aquecimento.
+                </p>
+            </div>
+        </section>
+    @endif
+
     <ol class="mt-8 flex flex-col gap-3">
         @forelse ($executions->reverse() as $execution)
             <li class="card bg-base-200" wire:key="execution-{{ $execution['item']->id }}">
