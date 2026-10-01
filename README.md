@@ -68,6 +68,16 @@ yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
     "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 ```
 
+O build também precisa de um **JDK 21 ou mais antigo**. O Java 25 quebra o compilador Kotlin que vem com o Gradle 8.14, com `IllegalArgumentException: 25.0.4.1` — a versão de quatro partes não é aceita. Sem JDK antigo no sistema, dá para baixar um sem root:
+
+```sh
+mkdir -p ~/.local/jdks
+curl -L -o /tmp/jdk21.tar.gz \
+    "https://api.adoptium.net/v3/binary/latest/21/ga/linux/x64/jdk/hotspot/normal/eclipse"
+tar xzf /tmp/jdk21.tar.gz -C ~/.local/jdks
+export JAVA_HOME=~/\.local/jdks/jdk-21*
+```
+
 Com o SDK no lugar, gere a chave de assinatura uma vez e guarde os dois arquivos longe do repositório:
 
 ```sh
