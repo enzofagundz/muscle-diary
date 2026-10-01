@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Dashboard;
+use App\Livewire\Exercises;
 use App\Livewire\Login;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/', Dashboard::class)->name('dashboard');
+
+    Route::get('/exercises', Exercises::class)->name('exercises.index');
 
     Route::post('/logout', function (Request $request) {
         Auth::logout();
