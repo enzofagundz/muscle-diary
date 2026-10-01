@@ -51,7 +51,8 @@ it('shows the bottom navigation inside the native shell', function () {
         ->assertOk()
         ->assertSee('Navegação principal')
         ->assertSee('Histórico')
-        ->assertSee('Modelos');
+        ->assertSee('Modelos')
+        ->assertSee('Sync');
 });
 
 it('keeps the browser layout without the mobile tab bar', function () {

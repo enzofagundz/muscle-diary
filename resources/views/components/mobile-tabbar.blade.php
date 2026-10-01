@@ -4,6 +4,7 @@
         ['label' => 'Histórico', 'route' => 'history.index', 'active' => 'history.*', 'icon' => '≡'],
         ['label' => 'Exercícios', 'route' => 'exercises.index', 'active' => 'exercises.*', 'icon' => '◎'],
         ['label' => 'Modelos', 'route' => 'templates.index', 'active' => 'templates.*', 'icon' => '▤'],
+        ['label' => 'Sync', 'route' => 'sync.index', 'active' => 'sync.*', 'icon' => '⇅'],
     ];
 @endphp
 
