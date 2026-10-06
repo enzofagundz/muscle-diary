@@ -148,3 +148,13 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - After the feature tests pass, ask the user to run the complete suite with `php artisan test --compact`.
 
 </laravel-boost-guidelines>
+
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live as GitHub issues in `enzofagundz/muscle-diary` (via `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Domain docs
+
+Single-context: read `GLOSSARY.md` and `docs/adr/` when they exist. See `docs/agents/domain.md`.
