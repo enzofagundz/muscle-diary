@@ -58,6 +58,8 @@ jobs:
 
       - name: Testes
         run: npm run test --if-present
+        env:
+          LARAVEL_BYPASS_ENV_CHECK: 1
 
       - name: Build
         run: npm run build
