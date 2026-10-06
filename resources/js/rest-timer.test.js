@@ -9,7 +9,9 @@ import {
     markAlerted,
     pauseRest,
     remainingSeconds,
+    restoreRest,
     resumeRest,
+    serializeRest,
     startRest,
 } from './rest-timer';
 
@@ -114,5 +116,56 @@ describe('rest timer', () => {
 
         expect(alertDue(state, 31_000)).toBe(false);
         expect(alertDue(state, 46_000)).toBe(true);
+    });
+
+    it('brings a paused rest back exactly where it stopped', () => {
+        const state = startRest(90, 1_000);
+
+        pauseRest(state, 31_000);
+
+        const restored = restoreRest(serializeRest({ state, label: 'Supino' }));
+
+        expect(restored.label).toBe('Supino');
+        expect(isPaused(restored.state)).toBe(true);
+        expect(remainingSeconds(restored.state, 60_000)).toBe(60);
+    });
+
+    it('ignores stored garbage', () => {
+        expect(restoreRest(null)).toBeNull();
+        expect(restoreRest('')).toBeNull();
+        expect(restoreRest('not json')).toBeNull();
+        expect(restoreRest(JSON.stringify({ duration: 'ninety', startedAt: 0 }))).toBeNull();
+        expect(restoreRest(JSON.stringify({ duration: 90 }))).toBeNull();
+    });
+
+    it('comes back done and alertable when the end passed while away', () => {
+        const state = startRest(30, 0);
+
+        const restored = restoreRest(serializeRest({ state, label: 'Supino' }));
+
+        expect(isDone(restored.state, 45_000)).toBe(true);
+        expect(alertDue(restored.state, 45_000)).toBe(true);
+    });
+
+    it('does not alert again after the alert was already given', () => {
+        const state = startRest(30, 0);
+
+        markAlerted(state);
+
+        const restored = restoreRest(serializeRest({ state, label: 'Supino' }));
+
+        expect(alertDue(restored.state, 45_000)).toBe(false);
+    });
+
+    it('replaces the stored rest when a new one starts', () => {
+        const first = serializeRest({ state: startRest(30, 0), label: 'Supino' });
+        const second = serializeRest({ state: startRest(60, 10_000), label: 'Remada' });
+
+        expect(second).not.toBe(first);
+
+        const restored = restoreRest(second);
+
+        expect(restored.label).toBe('Remada');
+        expect(remainingSeconds(restored.state, 10_000)).toBe(60);
     });
 });

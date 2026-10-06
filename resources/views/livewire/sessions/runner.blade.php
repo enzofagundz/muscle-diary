@@ -1,4 +1,4 @@
-<div x-data="restTimer()">
+<div x-data="restTimer({ sessionId: @js($session->id) })">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <a href="{{ route('dashboard') }}" class="text-xs tracking-[0.2em] uppercase opacity-60 hover:text-primary" wire:navigate>

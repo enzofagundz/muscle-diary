@@ -64,10 +64,6 @@ export function markAlerted(state) {
     state.alerted = true;
 }
 
-function clamp(seconds, min, max) {
-    return Math.min(Math.max(seconds, min), max);
-}
-
 export function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
     const minutes = Math.floor(safe / 60);
@@ -76,16 +72,99 @@ export function formatClock(seconds) {
     return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
 }
 
-export function restTimer() {
+export function serializeRest({ state, label }) {
+    return JSON.stringify({
+        duration: state.duration,
+        startedAt: state.startedAt,
+        pausedRemaining: state.pausedRemaining,
+        alerted: state.alerted,
+        label: label ?? '',
+    });
+}
+
+export function restoreRest(raw) {
+    if (typeof raw !== 'string' || raw === '') {
+        return null;
+    }
+
+    let data;
+
+    try {
+        data = JSON.parse(raw);
+    } catch {
+        return null;
+    }
+
+    if (typeof data !== 'object' || data === null) {
+        return null;
+    }
+
+    if (! Number.isFinite(data.duration) || data.duration <= 0 || ! Number.isFinite(data.startedAt)) {
+        return null;
+    }
+
+    if (data.pausedRemaining !== null && data.pausedRemaining !== undefined && ! Number.isFinite(data.pausedRemaining)) {
+        return null;
+    }
+
+    return {
+        state: {
+            duration: clamp(data.duration, 0, REST_MAX_SECONDS),
+            startedAt: data.startedAt,
+            pausedRemaining: data.pausedRemaining === null || data.pausedRemaining === undefined
+                ? null
+                : clamp(data.pausedRemaining, 0, REST_MAX_SECONDS),
+            alerted: data.alerted === true,
+        },
+        label: typeof data.label === 'string' ? data.label : '',
+    };
+}
+
+function clamp(seconds, min, max) {
+    return Math.min(Math.max(seconds, min), max);
+}
+
+export function restTimer({ sessionId } = {}) {
     return {
         running: false,
         label: '',
         state: null,
         remaining: 0,
         interval: null,
+        storageKey: sessionId ? `rest-timer:${sessionId}` : null,
+
+        init() {
+            this.handleVisibility = () => {
+                if (document.visibilityState === 'visible') {
+                    this.refresh();
+                }
+            };
+
+            document.addEventListener('visibilitychange', this.handleVisibility);
+            window.addEventListener('pageshow', this.handleVisibility);
+
+            const stored = this.read();
+
+            if (stored === null) {
+                return;
+            }
+
+            this.label = stored.label;
+            this.state = stored.state;
+            this.running = true;
+
+            this.refresh();
+        },
+
+        destroy() {
+            document.removeEventListener('visibilitychange', this.handleVisibility);
+            window.removeEventListener('pageshow', this.handleVisibility);
+
+            this.stopTicking();
+        },
 
         start(duration, label = '') {
-            if (!Number.isFinite(duration) || duration <= 0) {
+            if (! Number.isFinite(duration) || duration <= 0) {
                 return;
             }
 
@@ -93,18 +172,16 @@ export function restTimer() {
             this.state = startRest(duration);
             this.running = true;
 
-            this.update();
-
-            window.clearInterval(this.interval);
-            this.interval = window.setInterval(() => this.update(), 1000);
+            this.refresh();
+            this.persist();
         },
 
         close() {
             this.running = false;
             this.state = null;
 
-            window.clearInterval(this.interval);
-            this.interval = null;
+            this.stopTicking();
+            this.clear();
         },
 
         togglePause() {
@@ -118,7 +195,8 @@ export function restTimer() {
                 pauseRest(this.state);
             }
 
-            this.update();
+            this.refresh();
+            this.persist();
         },
 
         adjust(delta) {
@@ -128,7 +206,22 @@ export function restTimer() {
 
             adjustRest(this.state, delta);
 
+            this.refresh();
+            this.persist();
+        },
+
+        refresh() {
+            if (this.state === null) {
+                return;
+            }
+
             this.update();
+
+            if (isDone(this.state)) {
+                this.stopTicking();
+            } else {
+                this.ensureTicking();
+            }
         },
 
         update() {
@@ -140,20 +233,74 @@ export function restTimer() {
 
             if (isDone(this.state)) {
                 this.alert();
-
-                window.clearInterval(this.interval);
-                this.interval = null;
             }
         },
 
         alert() {
-            if (!alertDue(this.state)) {
+            if (! alertDue(this.state)) {
                 return;
             }
 
             markAlerted(this.state);
 
             navigator.vibrate?.(300);
+
+            this.persist();
+        },
+
+        ensureTicking() {
+            this.stopTicking();
+
+            this.interval = window.setInterval(() => {
+                this.update();
+
+                if (isDone(this.state)) {
+                    this.stopTicking();
+                }
+            }, 1000);
+        },
+
+        stopTicking() {
+            window.clearInterval(this.interval);
+            this.interval = null;
+        },
+
+        persist() {
+            const storage = this.storage();
+
+            if (storage === null || this.storageKey === null || this.state === null) {
+                return;
+            }
+
+            storage.setItem(this.storageKey, serializeRest({ state: this.state, label: this.label }));
+        },
+
+        read() {
+            const storage = this.storage();
+
+            if (storage === null || this.storageKey === null) {
+                return null;
+            }
+
+            return restoreRest(storage.getItem(this.storageKey));
+        },
+
+        clear() {
+            const storage = this.storage();
+
+            if (storage === null || this.storageKey === null) {
+                return;
+            }
+
+            storage.removeItem(this.storageKey);
+        },
+
+        storage() {
+            try {
+                return window.sessionStorage;
+            } catch {
+                return null;
+            }
         },
 
         get display() {
