@@ -280,7 +280,7 @@
             data-rest-bar
             class="rest-bar"
         >
-            <div class="mx-auto flex w-full max-w-[1200px] items-center gap-4 border-t border-base-300/40 bg-base-100/95 px-5 py-3 backdrop-blur">
+            <div class="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-2 border-t border-base-300/40 bg-base-100/95 px-5 py-3 backdrop-blur">
                 <span
                     class="font-display text-3xl leading-none tabular-nums"
                     x-bind:class="done && 'text-primary rest-done'"
@@ -293,9 +293,47 @@
                     <p class="text-primary text-xs" x-show="done" x-cloak role="status">descanso concluído</p>
                 </div>
 
-                <button type="button" class="btn btn-ghost btn-sm" x-on:click="close()">
-                    Encerrar
-                </button>
+                <div class="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                    <button
+                        type="button"
+                        data-rest-control="pause"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Pausar ou retomar descanso"
+                        x-on:click="togglePause()"
+                    >
+                        <span x-text="paused ? 'Retomar' : 'Pausar'"></span>
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="minus"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Diminuir descanso em 15 segundos"
+                        x-on:click="adjust(-15)"
+                    >
+                        −15s
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="plus"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Aumentar descanso em 15 segundos"
+                        x-on:click="adjust(15)"
+                    >
+                        +15s
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="close"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Encerrar descanso"
+                        x-on:click="close()"
+                    >
+                        Encerrar
+                    </button>
+                </div>
             </div>
         </div>
     @endunless

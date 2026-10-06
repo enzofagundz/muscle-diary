@@ -261,3 +261,15 @@ it('hides the rest button and the bar on a finished session', function () {
         ->assertDontSeeHtml('data-rest-seconds')
         ->assertDontSeeHtml('data-rest-bar');
 });
+
+it('renders the rest controls in the bar', function () {
+    [$user, $session, $item] = runningSession();
+
+    SessionSet::factory()->forItem($item)->create();
+
+    Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
+        ->assertSeeHtml('data-rest-control="pause"')
+        ->assertSeeHtml('data-rest-control="minus"')
+        ->assertSeeHtml('data-rest-control="plus"')
+        ->assertSeeHtml('data-rest-control="close"');
+});
