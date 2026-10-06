@@ -4,6 +4,7 @@ use App\Livewire\Sync;
 use App\Models\SyncSetting;
 use App\Models\User;
 use App\Models\WorkoutSession;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
@@ -96,4 +97,20 @@ it('leaves everything pending when the push fails', function () {
 
     expect(WorkoutSession::query()->whereNull('synced_at')->count())->toBe(1)
         ->and(SyncSetting::current()->last_synced_at)->toBeNull();
+});
+
+it('disconnects even when the server cannot be reached', function () {
+    SyncSetting::current()->update([
+        'server_url' => 'http://localhost:8000',
+        'token' => 'tok_123',
+    ]);
+
+    Http::fake(['*' => fn () => throw new ConnectionException('Failed to connect')]);
+
+    Livewire::actingAs(User::factory()->create())
+        ->test(Sync::class)
+        ->call('disconnect')
+        ->assertSee('Desconectado');
+
+    expect(SyncSetting::current()->isConnected())->toBeFalse();
 });
