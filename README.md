@@ -158,6 +158,19 @@ obs: aguentava mais
 
 O que não puder ser lido com segurança é relatado na saída em vez de adivinhado.
 
+## Hub de sincronização (Laravel Cloud)
+
+O outro lado do sync roda em `https://muscle-diary-production-fsegx2.laravel.cloud`
+(plano Starter, Postgres gerenciado, sem worker — o sync não precisa de fila).
+O ambiente usa sessão e cache no banco, porque o filesystem é efêmero.
+
+No celular, aba Sync: desconecte o endereço antigo, conecte com a URL do hub
+mais e-mail e senha da conta do hub, e sincronize. Para semear um hub novo
+com o histórico que já estava sincronizado, use **Reenviar tudo** na mesma tela.
+
+O celular é o único escritor: o site local (`muscle-diary.test`) fica só para
+desenvolvimento. Uso e custo do mês: `cloud usage --json -n`.
+
 ## Testes
 
 ```sh
