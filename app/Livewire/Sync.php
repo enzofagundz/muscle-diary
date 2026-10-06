@@ -9,6 +9,7 @@ use App\Support\NativeNetwork;
 use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 use Livewire\Component;
+use Throwable;
 
 class Sync extends Component
 {
@@ -62,8 +63,14 @@ class Sync extends Component
         $settings = SyncSetting::current();
 
         if ($settings->isConnected()) {
-            Http::withToken($settings->token)
-                ->delete($settings->server_url.'/api/token');
+            try {
+                Http::withToken($settings->token)
+                    ->delete($settings->server_url.'/api/token');
+            } catch (Throwable) {
+                // Revogar é melhor esforço: com o servidor fora do ar, o
+                // token morre sozinho na próxima conexão e o aparelho tem que
+                // soltar as credenciais agora, não travar nelas.
+            }
         }
 
         $settings->update(['server_url' => null, 'token' => null, 'last_synced_at' => null]);
