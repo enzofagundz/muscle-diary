@@ -36,7 +36,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Documentation Files
 
-- You must only create documentation files if explicitly requested by the user.
+- You must only create documentation files if explicitly requested by the user; documentation requested by a spec, ticket, or the calling skill (glossary, ADR) counts as requested.
 
 === boost rules ===
 

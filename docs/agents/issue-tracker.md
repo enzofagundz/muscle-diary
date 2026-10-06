@@ -4,12 +4,12 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 
 ## Conventions
 
-- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
+- **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies. Always a single-quoted heredoc (`<<'EOF'`); with a double-quoted one, backticks and `$(...)` in the markdown run as shell commands. `--body-file` works too.
 - **Read an issue**: `gh issue view <number> --comments`, filtering comments by `jq` and also fetching labels.
 - **List issues**: `gh issue list --state open --json number,title,body,labels,comments --jq '[.[] | {number, title, body, labels: [.labels[].name], comments: [.comments[].body]}]'` with appropriate `--label` and `--state` filters.
-- **Comment on an issue**: `gh issue comment <number> --body "..."`
+- **Comment on an issue**: `gh issue comment <number> --body "..."`. Same heredoc rule as creating: quote it with single quotes, or the backticks execute.
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
-- **Close**: `gh issue close <number> --comment "..."`
+- **Close**: `gh issue close <number> --comment "..."`. Same single-quote heredoc rule.
 
 Infer the repo from `git remote -v`; `gh` does this automatically when run inside a clone.
 
