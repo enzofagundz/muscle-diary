@@ -1,4 +1,6 @@
 <div x-data="restTimer({ sessionId: @js($session->id) })">
+    @php $finished = $session->isFinished(); @endphp
+
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <a href="{{ route('dashboard') }}" class="text-xs tracking-[0.2em] uppercase opacity-60 hover:text-primary" wire:navigate>
@@ -17,7 +19,7 @@
         <div class="flex flex-wrap gap-2">
             <button type="button" class="btn btn-outline btn-primary btn-sm px-5" wire:click="addItem">Adicionar exercício</button>
 
-            @unless ($session->isFinished())
+            @unless ($finished)
                 <button
                     type="button"
                     class="btn btn-ghost btn-sm text-error"
@@ -29,7 +31,7 @@
             @endunless
 
             <button type="button" class="btn btn-primary btn-sm px-6" wire:click="finish" wire:loading.attr="disabled">
-                {{ $session->isFinished() ? 'Salvar e voltar' : 'Finalizar treino' }}
+                {{ $finished ? 'Salvar e voltar' : 'Finalizar treino' }}
             </button>
         </div>
     </div>
@@ -198,7 +200,7 @@
                                         aquecimento
                                     </label>
 
-                                    @unless ($session->isFinished())
+                                    @unless ($finished)
                                         @if ($restSeconds > 0)
                                             <button
                                                 type="button"
@@ -273,7 +275,7 @@
         ></textarea>
     </label>
 
-    @unless ($session->isFinished())
+    @unless ($finished)
         <div
             x-cloak
             x-show="running"
@@ -285,7 +287,8 @@
                     class="font-display text-3xl leading-none tabular-nums"
                     x-bind:class="done && 'text-primary rest-done'"
                     x-text="display"
-                    aria-hidden="true"
+                    role="timer"
+                    aria-label="Tempo restante do descanso"
                 ></span>
 
                 <div class="min-w-0 flex-1">

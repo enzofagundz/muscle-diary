@@ -168,4 +168,17 @@ describe('rest timer', () => {
         expect(restored.label).toBe('Remada');
         expect(remainingSeconds(restored.state, 10_000)).toBe(60);
     });
+
+    it('brings back a rest that was adjusted down to zero', () => {
+        const state = startRest(90, 0);
+
+        adjustRest(state, -90, 0);
+
+        expect(state.duration).toBe(0);
+
+        const restored = restoreRest(serializeRest({ state, label: 'Supino' }));
+
+        expect(restored).not.toBeNull();
+        expect(isDone(restored.state, 10_000)).toBe(true);
+    });
 });

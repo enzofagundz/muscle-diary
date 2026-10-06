@@ -67,9 +67,9 @@ export function markAlerted(state) {
 export function formatClock(seconds) {
     const safe = Math.max(0, Math.round(seconds));
     const minutes = Math.floor(safe / 60);
-    const rest = safe % 60;
+    const secs = safe % 60;
 
-    return `${String(minutes).padStart(2, '0')}:${String(rest).padStart(2, '0')}`;
+    return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
 
 export function serializeRest({ state, label }) {
@@ -99,7 +99,7 @@ export function restoreRest(raw) {
         return null;
     }
 
-    if (! Number.isFinite(data.duration) || data.duration <= 0 || ! Number.isFinite(data.startedAt)) {
+    if (! Number.isFinite(data.duration) || data.duration < 0 || ! Number.isFinite(data.startedAt)) {
         return null;
     }
 
@@ -312,6 +312,7 @@ export function restTimer({ sessionId } = {}) {
         },
 
         get done() {
+            // Reads remaining, not isDone(state), so bindings react as the clock ticks.
             return this.state !== null && this.remaining === 0;
         },
     };
