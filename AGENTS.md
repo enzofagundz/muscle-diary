@@ -18,6 +18,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 ## Conventions
 
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
+- Commit and code conventions live in `CODING_STANDARDS.md`; follow it when committing.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
 
@@ -36,7 +37,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 
 ## Documentation Files
 
-- You must only create documentation files if explicitly requested by the user.
+- You must only create documentation files if explicitly requested by the user; documentation requested by a spec, ticket, or the calling skill (glossary, ADR) counts as requested.
 
 === boost rules ===
 

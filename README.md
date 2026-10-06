@@ -8,6 +8,7 @@ O projeto roda no lerd, em `http://muscle-diary.test`.
 
 ```sh
 lerd start
+touch database/database.sqlite   # se o arquivo ainda não existir
 php artisan migrate --seed
 php artisan app:user seu@email.com --name="Seu Nome"
 ```
