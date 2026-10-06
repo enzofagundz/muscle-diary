@@ -151,22 +151,22 @@
                                 ])
                                 wire:key="set-{{ $set->id }}"
                             >
-                                <div class="flex items-center gap-2">
-                                    <span class="font-display w-8 shrink-0 text-lg leading-none opacity-60">
+                                <div class="flex flex-wrap items-center gap-x-1.5 gap-y-2">
+                                    <span class="font-display w-6 shrink-0 text-lg leading-none opacity-60">
                                         {{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}
                                     </span>
 
                                     <input
                                         type="text"
                                         inputmode="decimal"
-                                        class="input input-lg w-24 text-center"
+                                        class="input input-lg min-w-[4rem] flex-1 text-center"
                                         placeholder="—"
                                         wire:model.live.debounce.500ms="setDrafts.{{ $set->id }}.load"
                                         aria-label="Carga"
                                     >
 
                                     <select
-                                        class="select select-sm w-28 shrink-0"
+                                        class="select select-sm w-20 shrink-0"
                                         wire:model.blur="setDrafts.{{ $set->id }}.unit"
                                         aria-label="Unidade"
                                     >
@@ -175,12 +175,12 @@
                                         @endforeach
                                     </select>
 
-                                    <span class="opacity-40">×</span>
+                                    <span class="shrink-0 opacity-40">×</span>
 
                                     <input
                                         type="text"
                                         inputmode="numeric"
-                                        class="input input-lg w-20 text-center"
+                                        class="input input-lg w-16 shrink-0 text-center"
                                         placeholder="—"
                                         wire:model.live.debounce.500ms="setDrafts.{{ $set->id }}.reps"
                                         aria-label="Repetições"
