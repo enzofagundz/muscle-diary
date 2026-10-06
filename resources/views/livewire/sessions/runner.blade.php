@@ -1,4 +1,6 @@
-<div>
+<div x-data="restTimer({ sessionId: @js($session->id) })">
+    @php $finished = $session->isFinished(); @endphp
+
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <a href="{{ route('dashboard') }}" class="text-xs tracking-[0.2em] uppercase opacity-60 hover:text-primary" wire:navigate>
@@ -17,7 +19,7 @@
         <div class="flex flex-wrap gap-2">
             <button type="button" class="btn btn-outline btn-primary btn-sm px-5" wire:click="addItem">Adicionar exercício</button>
 
-            @unless ($session->isFinished())
+            @unless ($finished)
                 <button
                     type="button"
                     class="btn btn-ghost btn-sm text-error"
@@ -29,7 +31,7 @@
             @endunless
 
             <button type="button" class="btn btn-primary btn-sm px-6" wire:click="finish" wire:loading.attr="disabled">
-                {{ $session->isFinished() ? 'Salvar e voltar' : 'Finalizar treino' }}
+                {{ $finished ? 'Salvar e voltar' : 'Finalizar treino' }}
             </button>
         </div>
     </div>
@@ -136,6 +138,8 @@
                         </p>
                     @endif
 
+                    @php $restSeconds = $item->rest_seconds ?? $session->rest_seconds; @endphp
+
                     <div class="flex flex-col gap-2">
                         @foreach ($item->sets as $set)
                             @php $draft = $setDrafts[$set->id] ?? []; @endphp
@@ -195,6 +199,19 @@
                                         <input type="checkbox" class="checkbox checkbox-xs" wire:model.live="setDrafts.{{ $set->id }}.is_warmup">
                                         aquecimento
                                     </label>
+
+                                    @unless ($finished)
+                                        @if ($restSeconds > 0)
+                                            <button
+                                                type="button"
+                                                class="btn btn-ghost btn-xs text-primary"
+                                                data-rest-seconds="{{ $restSeconds }}"
+                                                x-on:click="start({{ $restSeconds }}, @js($item->exercise->name))"
+                                            >
+                                                descanso {{ $restSeconds }}s
+                                            </button>
+                                        @endif
+                                    @endunless
 
                                     <button type="button" class="btn btn-ghost btn-xs" wire:click="copyPrevious('{{ $set->id }}')">
                                         copiar anterior
@@ -257,4 +274,70 @@
             wire:model.live.debounce.500ms="sessionNotes"
         ></textarea>
     </label>
+
+    @unless ($finished)
+        <div
+            x-cloak
+            x-show="running"
+            data-rest-bar
+            class="rest-bar"
+        >
+            <div class="mx-auto flex w-full max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-2 border-t border-base-300/40 bg-base-100/95 px-5 py-3 backdrop-blur">
+                <span
+                    class="font-display text-3xl leading-none tabular-nums"
+                    x-bind:class="done && 'text-primary rest-done'"
+                    x-text="display"
+                    role="timer"
+                    aria-label="Tempo restante do descanso"
+                ></span>
+
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm" x-text="label"></p>
+                    <p class="text-primary text-xs" x-show="done" x-cloak role="status">descanso concluído</p>
+                </div>
+
+                <div class="flex w-full shrink-0 items-center justify-end gap-1 sm:w-auto">
+                    <button
+                        type="button"
+                        data-rest-control="pause"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Pausar ou retomar descanso"
+                        x-on:click="togglePause()"
+                    >
+                        <span x-text="paused ? 'Retomar' : 'Pausar'"></span>
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="minus"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Diminuir descanso em 15 segundos"
+                        x-on:click="adjust(-15)"
+                    >
+                        −15s
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="plus"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Aumentar descanso em 15 segundos"
+                        x-on:click="adjust(15)"
+                    >
+                        +15s
+                    </button>
+
+                    <button
+                        type="button"
+                        data-rest-control="close"
+                        class="btn btn-ghost btn-sm"
+                        aria-label="Encerrar descanso"
+                        x-on:click="close()"
+                    >
+                        Encerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endunless
 </div>
