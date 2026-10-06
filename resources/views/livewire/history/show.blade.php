@@ -184,7 +184,7 @@
 
                     <ul class="flex flex-col gap-1">
                         @forelse ($item->sets as $set)
-                            <li class="flex items-baseline gap-3 text-sm" wire:key="set-{{ $set->id }}">
+                            <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm" wire:key="set-{{ $set->id }}">
                                 <span class="font-display w-8 shrink-0 opacity-60">
                                     {{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}
                                 </span>
@@ -198,7 +198,7 @@
                                     <span class="badge badge-ghost badge-xs">aquecimento</span>
                                 @endif
                                 @if ($set->notes)
-                                    <span class="opacity-60">{{ $set->notes }}</span>
+                                    <span class="min-w-0 break-words opacity-60">{{ $set->notes }}</span>
                                 @endif
                             </li>
                         @empty

@@ -106,7 +106,7 @@
 
                     <ul class="flex flex-col gap-1">
                         @forelse ($execution['sets'] as $set)
-                            <li class="flex items-baseline gap-3 text-sm">
+                            <li class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
                                 <span class="font-display w-8 shrink-0 opacity-60">
                                     {{ $set->set_number }}{{ $set->part > 0 ? chr(96 + $set->part) : '' }}
                                 </span>
@@ -117,7 +117,7 @@
                                     {{ $set->reps ?? '—' }}
                                 </span>
                                 @if ($set->notes)
-                                    <span class="opacity-60">{{ $set->notes }}</span>
+                                    <span class="min-w-0 break-words opacity-60">{{ $set->notes }}</span>
                                 @endif
                             </li>
                         @empty
