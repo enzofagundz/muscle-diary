@@ -1,5 +1,5 @@
 export function startRest(duration, now = Date.now()) {
-    return { duration: Math.max(0, Math.round(duration)), startedAt: now };
+    return { duration: Math.max(0, Math.round(duration)), startedAt: now, alerted: false };
 }
 
 export function remainingSeconds(state, now = Date.now()) {
@@ -10,6 +10,14 @@ export function remainingSeconds(state, now = Date.now()) {
 
 export function isDone(state, now = Date.now()) {
     return remainingSeconds(state, now) === 0;
+}
+
+export function alertDue(state, now = Date.now()) {
+    return isDone(state, now) && !state.alerted;
+}
+
+export function markAlerted(state) {
+    state.alerted = true;
 }
 
 export function formatClock(seconds) {
@@ -59,9 +67,21 @@ export function restTimer() {
             this.remaining = remainingSeconds(this.state);
 
             if (isDone(this.state)) {
+                this.alert();
+
                 window.clearInterval(this.interval);
                 this.interval = null;
             }
+        },
+
+        alert() {
+            if (!alertDue(this.state)) {
+                return;
+            }
+
+            markAlerted(this.state);
+
+            navigator.vibrate?.(300);
         },
 
         get display() {
@@ -69,7 +89,7 @@ export function restTimer() {
         },
 
         get done() {
-            return this.state !== null && isDone(this.state);
+            return this.state !== null && this.remaining === 0;
         },
     };
 }

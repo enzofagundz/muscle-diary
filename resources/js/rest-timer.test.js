@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatClock, isDone, remainingSeconds, startRest } from './rest-timer';
+import { alertDue, formatClock, isDone, markAlerted, remainingSeconds, startRest } from './rest-timer';
 
 describe('rest timer', () => {
     it('counts down from the duration using the start instant', () => {
@@ -25,5 +25,17 @@ describe('rest timer', () => {
         expect(formatClock(5)).toBe('00:05');
         expect(formatClock(90)).toBe('01:30');
         expect(formatClock(3600)).toBe('60:00');
+    });
+
+    it('asks for a single alert when the rest reaches zero', () => {
+        const state = startRest(30, 1_000);
+
+        expect(alertDue(state, 29_000)).toBe(false);
+        expect(alertDue(state, 31_000)).toBe(true);
+
+        markAlerted(state);
+
+        expect(alertDue(state, 32_000)).toBe(false);
+        expect(alertDue(state, 29_000)).toBe(false);
     });
 });

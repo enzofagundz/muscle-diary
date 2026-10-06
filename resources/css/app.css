@@ -127,4 +127,23 @@
     .native-shell .rest-bar {
         bottom: calc(4rem + env(safe-area-inset-bottom));
     }
+
+    /* The clock pulses when the rest is over: the only alert the timer
+       gives, besides the haptic buzz. */
+    .rest-done {
+        animation: rest-done 0.5s ease-in-out 3;
+    }
+
+    @keyframes rest-done {
+        50% {
+            opacity: 0.5;
+            transform: scale(1.12);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .rest-done {
+            animation: none;
+        }
+    }
 }

@@ -281,7 +281,12 @@
             class="rest-bar"
         >
             <div class="mx-auto flex w-full max-w-[1200px] items-center gap-4 border-t border-base-300/40 bg-base-100/95 px-5 py-3 backdrop-blur">
-                <span class="font-display text-3xl leading-none tabular-nums" x-text="display" aria-hidden="true"></span>
+                <span
+                    class="font-display text-3xl leading-none tabular-nums"
+                    x-bind:class="done && 'text-primary rest-done'"
+                    x-text="display"
+                    aria-hidden="true"
+                ></span>
 
                 <div class="min-w-0 flex-1">
                     <p class="truncate text-sm" x-text="label"></p>
