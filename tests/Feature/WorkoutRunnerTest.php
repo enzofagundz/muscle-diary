@@ -269,7 +269,12 @@ it('renders the rest controls in the bar', function () {
 
     Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
         ->assertSeeHtml('data-rest-control="pause"')
+        ->assertSeeHtml('aria-label="Pausar ou retomar descanso"')
         ->assertSeeHtml('data-rest-control="minus"')
+        ->assertSeeHtml('aria-label="Diminuir descanso em 15 segundos"')
         ->assertSeeHtml('data-rest-control="plus"')
-        ->assertSeeHtml('data-rest-control="close"');
+        ->assertSeeHtml('aria-label="Aumentar descanso em 15 segundos"')
+        ->assertSeeHtml('data-rest-control="close"')
+        ->assertSeeHtml('aria-label="Encerrar descanso"')
+        ->assertSeeHtml('aria-label="Tempo restante do descanso"');
 });
