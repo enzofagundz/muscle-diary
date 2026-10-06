@@ -99,6 +99,46 @@ it('leaves everything pending when the push fails', function () {
         ->and(SyncSetting::current()->last_synced_at)->toBeNull();
 });
 
+it('resends the whole history on demand', function () {
+    $user = User::factory()->create();
+
+    $session = WorkoutSession::factory()->ownedBy($user)->create(['synced_at' => now()]);
+
+    SyncSetting::current()->update([
+        'server_url' => 'https://diario.exemplo.com',
+        'token' => 'tok_123',
+    ]);
+
+    Http::fake([
+        '*/api/sync/push' => Http::response(['written' => ['workout_sessions' => 1]]),
+        '*/api/sync/pull*' => Http::response(['rows' => []]),
+    ]);
+
+    Livewire::actingAs($user)->test(Sync::class)->call('resendAll')->assertSee('Sincronizado');
+
+    expect(WorkoutSession::query()->whereNull('synced_at')->count())->toBe(0);
+
+    Http::assertSent(fn ($request) => str_contains($request->url(), '/api/sync/push')
+        && collect($request['rows']['workout_sessions'] ?? [])->contains('id', $session->id));
+});
+
+it('keeps everything pending when resending fails', function () {
+    $user = User::factory()->create();
+
+    WorkoutSession::factory()->ownedBy($user)->create(['synced_at' => now()]);
+
+    SyncSetting::current()->update([
+        'server_url' => 'https://diario.exemplo.com',
+        'token' => 'tok_123',
+    ]);
+
+    Http::fake(['*' => Http::response([], 500)]);
+
+    Livewire::actingAs($user)->test(Sync::class)->call('resendAll')->assertSee('A sincronização falhou');
+
+    expect(WorkoutSession::query()->whereNull('synced_at')->count())->toBe(1);
+});
+
 it('disconnects even when the server cannot be reached', function () {
     SyncSetting::current()->update([
         'server_url' => 'http://localhost:8000',

@@ -227,6 +227,18 @@ class SyncService
     }
 
     /**
+     * Mark every row as pending again, so the next round trip sends the
+     * whole history. A query builder update fires no model events, so the
+     * trait that marks rows on save never fights it.
+     */
+    public function markEverythingPending(): void
+    {
+        foreach (self::TABLES as $table) {
+            $this->query($table)->update(['synced_at' => null]);
+        }
+    }
+
+    /**
      * @param  array<string, mixed>  $row
      */
     private function write(string $table, string $id, array $row): void

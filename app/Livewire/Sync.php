@@ -105,6 +105,13 @@ class Sync extends Component
         $this->notice = 'Sincronizado.';
     }
 
+    public function resendAll(): void
+    {
+        (new SyncService)->markEverythingPending();
+
+        $this->sync();
+    }
+
     public function render(): View
     {
         $settings = SyncSetting::current();
