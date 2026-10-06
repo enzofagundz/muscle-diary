@@ -351,3 +351,22 @@ it('never brings another account down to the device', function () {
 
     expect(WorkoutTemplate::on('device')->count())->toBe(0);
 });
+
+it('sends everything again after marking it all as pending', function () {
+    $session = recordOnDevice($this->user, [[14, 'plate', 12]]);
+
+    $this->server->push($this->device->pending(), $this->user);
+    $this->device->markSynced($this->device->pending());
+
+    expect($this->device->pending())->toBeEmpty();
+
+    $this->device->markEverythingPending();
+
+    expect($this->device->pending())->not->toBeEmpty();
+
+    $this->server->push($this->device->pending(), $this->user);
+    $this->device->markSynced($this->device->pending());
+
+    expect(WorkoutSession::on('server')->whereKey($session->id)->value('name'))->toBe('Upper 1')
+        ->and($this->device->pending())->toBeEmpty();
+});

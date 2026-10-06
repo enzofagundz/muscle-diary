@@ -37,6 +37,15 @@
 
                     <button
                         type="button"
+                        class="btn btn-ghost btn-sm"
+                        wire:click="resendAll"
+                        wire:confirm="Reenviar todo o histórico para o servidor?"
+                    >
+                        Reenviar tudo
+                    </button>
+
+                    <button
+                        type="button"
                         class="btn btn-ghost btn-sm text-error"
                         wire:click="disconnect"
                         wire:confirm="Desconectar este aparelho do servidor?"
