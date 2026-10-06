@@ -1,4 +1,4 @@
-<div>
+<div x-data="restTimer()">
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div>
             <a href="{{ route('dashboard') }}" class="text-xs tracking-[0.2em] uppercase opacity-60 hover:text-primary" wire:navigate>
@@ -136,6 +136,8 @@
                         </p>
                     @endif
 
+                    @php $restSeconds = $item->rest_seconds ?? $session->rest_seconds; @endphp
+
                     <div class="flex flex-col gap-2">
                         @foreach ($item->sets as $set)
                             @php $draft = $setDrafts[$set->id] ?? []; @endphp
@@ -195,6 +197,19 @@
                                         <input type="checkbox" class="checkbox checkbox-xs" wire:model.live="setDrafts.{{ $set->id }}.is_warmup">
                                         aquecimento
                                     </label>
+
+                                    @unless ($session->isFinished())
+                                        @if ($restSeconds > 0)
+                                            <button
+                                                type="button"
+                                                class="btn btn-ghost btn-xs text-primary"
+                                                data-rest-seconds="{{ $restSeconds }}"
+                                                x-on:click="start({{ $restSeconds }}, @js($item->exercise->name))"
+                                            >
+                                                descanso {{ $restSeconds }}s
+                                            </button>
+                                        @endif
+                                    @endunless
 
                                     <button type="button" class="btn btn-ghost btn-xs" wire:click="copyPrevious('{{ $set->id }}')">
                                         copiar anterior
@@ -257,4 +272,26 @@
             wire:model.live.debounce.500ms="sessionNotes"
         ></textarea>
     </label>
+
+    @unless ($session->isFinished())
+        <div
+            x-cloak
+            x-show="running"
+            data-rest-bar
+            class="rest-bar"
+        >
+            <div class="mx-auto flex w-full max-w-[1200px] items-center gap-4 border-t border-base-300/40 bg-base-100/95 px-5 py-3 backdrop-blur">
+                <span class="font-display text-3xl leading-none tabular-nums" x-text="display" aria-hidden="true"></span>
+
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm" x-text="label"></p>
+                    <p class="text-primary text-xs" x-show="done" x-cloak role="status">descanso concluído</p>
+                </div>
+
+                <button type="button" class="btn btn-ghost btn-sm" x-on:click="close()">
+                    Encerrar
+                </button>
+            </div>
+        </div>
+    @endunless
 </div>

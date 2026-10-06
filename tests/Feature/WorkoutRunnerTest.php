@@ -218,3 +218,46 @@ it('refuses to remove a set that belongs to another session', function () {
 
     expect($foreign->fresh()->trashed())->toBeFalse();
 });
+
+it('offers a rest button with the rest set on the exercise', function () {
+    [$user, $session, $item] = runningSession();
+
+    $item->update(['rest_seconds' => 120]);
+    SessionSet::factory()->forItem($item)->create();
+
+    Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
+        ->assertSeeHtml('data-rest-seconds="120"')
+        ->assertSeeHtml('data-rest-bar');
+});
+
+it('falls back to the rest of the session when the exercise does not set one', function () {
+    [$user, $session, $item] = runningSession();
+
+    $session->update(['rest_seconds' => 45]);
+    $item->update(['rest_seconds' => null]);
+    SessionSet::factory()->forItem($item)->create();
+
+    Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
+        ->assertSeeHtml('data-rest-seconds="45"');
+});
+
+it('hides the rest button when the rest is zero', function () {
+    [$user, $session, $item] = runningSession();
+
+    $item->update(['rest_seconds' => 0]);
+    SessionSet::factory()->forItem($item)->create();
+
+    Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
+        ->assertDontSeeHtml('data-rest-seconds');
+});
+
+it('hides the rest button and the bar on a finished session', function () {
+    [$user, $session, $item] = runningSession();
+
+    $session->update(['finished_at' => now()]);
+    SessionSet::factory()->forItem($item)->create();
+
+    Livewire::actingAs($user)->test(Runner::class, ['session' => $session])
+        ->assertDontSeeHtml('data-rest-seconds')
+        ->assertDontSeeHtml('data-rest-bar');
+});

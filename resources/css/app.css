@@ -61,6 +61,10 @@
 }
 
 @layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+
     body {
         font-family: var(--font-sans);
         letter-spacing: -0.022em;
@@ -110,5 +114,17 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         opacity: 0.6;
+    }
+
+    .rest-bar {
+        position: fixed;
+        inset-inline: 0;
+        bottom: 0;
+        z-index: 30;
+    }
+
+    /* Keep the resting count clear of the native bottom tab bar. */
+    .native-shell .rest-bar {
+        bottom: calc(4rem + env(safe-area-inset-bottom));
     }
 }
