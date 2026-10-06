@@ -86,10 +86,12 @@ keytool -genkeypair -v -keystore ~/diario-release.keystore -alias diario \
     -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-E então empacote:
+E então empacote com o script do projeto, que reconstrói os assets antes
+(o `native:package` usa o `public/build` como está — um build velho já
+gerou um APK com o JavaScript vazio e o timer não existia no aparelho):
 
 ```sh
-php artisan native:package --android --no-tty \
+scripts/apk.sh --android \
     --keystore="$HOME/diario-release.keystore" \
     --keystore-password=SUA_SENHA \
     --key-alias=diario \
