@@ -27,6 +27,16 @@ jobs:
           cp .env.example .env
           php artisan key:generate
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Build dos assets
+        run: |
+          npm ci
+          npm run build
+
       - name: Estilo
         run: vendor/bin/pint --test
 
